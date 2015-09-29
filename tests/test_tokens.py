@@ -7,65 +7,65 @@ from tri.cache.memoize import memoize
 from tri.token import TokenContainer, Token, TokenAttribute, PRESENT
 
 
-class TestToken(Token):
+class MyToken(Token):
 
     name = TokenAttribute()
     stuff = TokenAttribute()
 
 
-class TestTokens(TokenContainer):
+class MyTokens(TokenContainer):
 
-    foo = TestToken(stuff='Hello')
-    bar = TestToken(stuff='World')
+    foo = MyToken(stuff='Hello')
+    bar = MyToken(stuff='World')
 
 
 def test_in():
-    assert TestTokens.foo in TestTokens
+    assert MyTokens.foo in MyTokens
 
-    class OtherTokens(TestTokens):
-        boink = TestToken()
+    class OtherTokens(MyTokens):
+        boink = MyToken()
 
-    assert TestTokens.foo in OtherTokens
+    assert MyTokens.foo in OtherTokens
 
 
 def test_immutable():
-    d = {TestTokens.foo: 17}
-    assert d[TestTokens.foo] is 17
+    d = {MyTokens.foo: 17}
+    assert d[MyTokens.foo] is 17
 
     with pytest.raises(AttributeError):
-        TestTokens.foo.stuff = "Not likely"
+        MyTokens.foo.stuff = "Not likely"
 
 
 def test_immutable_attribute_values():
 
     with pytest.raises(ValueError) as exception_info:
-        TestToken(stuff=[])
+        MyToken(stuff=[])
 
     assert exception_info.value.message == "Attribute stuff has unhashable value: []"
 
 
 def test_copy():
-    assert copy(TestTokens.foo) is TestTokens.foo
-    assert copy([TestTokens.foo]) == [TestTokens.foo]
+    assert copy(MyTokens.foo) is MyTokens.foo
+    assert copy([MyTokens.foo]) == [MyTokens.foo]
 
 
 def test_deepcopy():
-    assert deepcopy(TestTokens.foo) is TestTokens.foo
-    assert deepcopy([TestTokens.foo]) == [TestTokens.foo]
+    assert deepcopy(MyTokens.foo) is MyTokens.foo
+    assert deepcopy([MyTokens.foo]) == [MyTokens.foo]
 
 
 def test_pickle():
-    s = pickle.dumps(TestTokens.foo, pickle.HIGHEST_PROTOCOL)
-    assert pickle.loads(s) == TestTokens.foo
+    s = pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL)
+    assert pickle.loads(s) == MyTokens.foo
 
 
 def test_modification():
-    existing_token = TestTokens.foo
+    existing_token = MyTokens.foo
     attributes = dict(existing_token)
     attributes.update(stuff="Other stuff")
     new_token = type(existing_token)(**attributes)
     assert new_token.stuff == "Other stuff"
-    assert isinstance(new_token, TestToken)
+    assert isinstance(new_token, MyToken)
 
 
 def test_attribute_ordering():
@@ -83,44 +83,44 @@ def test_attribute_ordering():
 def test_token_sorting():
 
     class OrderedTokens(TokenContainer):
-        first = TestToken()
-        second = TestToken()
-        third = TestToken()
-        fourth = TestToken()
-        fifth = TestToken()
+        first = MyToken()
+        second = MyToken()
+        third = MyToken()
+        fourth = MyToken()
+        fifth = MyToken()
 
     assert list(OrderedTokens) == list(sorted(set(OrderedTokens)))
 
 
 def test_names():
-    assert [token.name for token in TestTokens] == ['foo', 'bar']
+    assert [token.name for token in MyTokens] == ['foo', 'bar']
 
 
 def test_unicode():
-    assert unicode(TestToken()) == u'(unnamed)'
-    assert unicode(TestTokens.foo) == u'foo'
+    assert unicode(MyToken()) == u'(unnamed)'
+    assert unicode(MyTokens.foo) == u'foo'
 
 
 def test_str():
-    assert str(TestToken()) == "(unnamed)"
-    assert str(TestTokens.foo) == "foo"
-    assert str(list(TestTokens)) == "[<TestToken: foo>, <TestToken: bar>]"
+    assert str(MyToken()) == "(unnamed)"
+    assert str(MyTokens.foo) == "foo"
+    assert str(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>]"
 
 
 def test_type_str():
-    assert "<class 'tri.token.test.unittest.test_tokens.TestToken'>" == str(TestToken)
-    assert "<class 'tri.token.test.unittest.test_tokens.TestToken'>" == str(type(TestTokens.foo))
-    assert "<class 'tri.token.test.unittest.test_tokens.TestTokens'>" == str(TestTokens)
+    assert "<class 'tests.test_tokens.MyToken'>" == str(MyToken)
+    assert "<class 'tests.test_tokens.MyToken'>" == str(type(MyTokens.foo))
+    assert "<class 'tests.test_tokens.MyTokens'>" == str(MyTokens)
 
 
 def test_repr():
-    assert repr(TestToken()) == "<TestToken: (unnamed)>"
-    assert repr(TestTokens.foo) == "<TestToken: foo>"
-    assert repr(list(TestTokens)) == "[<TestToken: foo>, <TestToken: bar>]"
+    assert repr(MyToken()) == "<MyToken: (unnamed)>"
+    assert repr(MyTokens.foo) == "<MyToken: foo>"
+    assert repr(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>]"
 
 
 def test_other_field():
-    assert [token.stuff for token in TestTokens] == ['Hello', 'World']
+    assert [token.stuff for token in MyTokens] == ['Hello', 'World']
 
 
 def test_inheritance():
@@ -140,20 +140,20 @@ def test_inheritance():
 
 def test_container_inheritance_ordering():
 
-    class MoreTokens(TestTokens):
-        boink = TestToken(stuff='Other Stuff')
+    class MoreTokens(MyTokens):
+        boink = MyToken(stuff='Other Stuff')
 
-    assert list(MoreTokens) == [TestTokens.foo, TestTokens.bar, MoreTokens.boink]
-    assert MoreTokens.foo is TestTokens.foo
+    assert list(MoreTokens) == [MyTokens.foo, MyTokens.bar, MoreTokens.boink]
+    assert MoreTokens.foo is MyTokens.foo
 
 
 def test_container_inheritance_override():
 
-    class MoreTokens(TestTokens):
-        foo = TestToken(stuff='Override')
+    class MoreTokens(MyTokens):
+        foo = MyToken(stuff='Override')
 
     assert len(MoreTokens) == 2
-    assert MoreTokens.foo != TestTokens.foo
+    assert MoreTokens.foo != MyTokens.foo
     assert MoreTokens.foo.stuff == 'Override'
 
 
@@ -184,7 +184,7 @@ def test_extra_stuff():
     def alpha_ordered():
         return sorted(ExtendedTokens, key=lambda token: token.name)
 
-    class ExtendedTokens(TestTokens):
+    class ExtendedTokens(MyTokens):
 
         @classmethod
         def alpha_index(cls, index):
@@ -279,7 +279,7 @@ def test_prefix():
 
 def test_to_csv_no_spec():
 
-    class TestTokensWithoutDocumentation(TestTokens):
+    class TestTokensWithoutDocumentation(MyTokens):
         class Meta:
             pass
 
@@ -291,7 +291,7 @@ bar\r
 
 
 def test_to_csv():
-    class TestTokensWithDocumentation(TestTokens):
+    class TestTokensWithDocumentation(MyTokens):
         class Meta:
             documentation_columns = ['name', 'stuff']
 
@@ -303,7 +303,7 @@ bar,World\r
 
 
 def test_to_rst():
-    class TestTokensWithDocumentation(TestTokens):
+    class TestTokensWithDocumentation(MyTokens):
 
         class Meta:
             documentation_columns = ['name', 'stuff']

@@ -1,2 +1,4 @@
 tri.cache.memoize
+tri.declarative
 tri.struct
+prettytable
