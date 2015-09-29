@@ -3,7 +3,7 @@ import csv
 from io import BytesIO
 from StringIO import StringIO
 
-from tri.declarative.declarative import declarative_member, declarative
+from tri.declarative import creation_ordered, declarative
 from tri.struct import FrozenStruct, Struct
 
 
@@ -17,7 +17,7 @@ class PRESENT(object):
 MISSING = object()
 
 
-@declarative_member
+@creation_ordered
 class TokenAttribute(FrozenStruct):
     def __init__(self, **kwargs):
         kwargs.setdefault('description')
@@ -27,7 +27,7 @@ class TokenAttribute(FrozenStruct):
         super(TokenAttribute, self).__init__(**kwargs)
 
 
-@declarative_member
+@creation_ordered
 @declarative(TokenAttribute, 'token_attributes', add_init_kwargs=False)
 class Token(FrozenStruct):
 
