@@ -3,11 +3,11 @@ import csv
 from io import BytesIO
 from StringIO import StringIO
 
-from tri.declarative import creation_ordered, declarative
+from tri.declarative import creation_ordered, declarative, with_meta
 from tri.struct import FrozenStruct, Struct
 
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 class PRESENT(object):
@@ -28,14 +28,14 @@ class TokenAttribute(FrozenStruct):
 
 
 @creation_ordered
-@declarative(TokenAttribute, 'token_attributes', add_init_kwargs=False)
+@declarative(TokenAttribute, add_init_kwargs=False)
 class Token(FrozenStruct):
 
     name = TokenAttribute()
 
     @classmethod
     def attribute_names(cls):
-        return tuple(cls.get_meta().token_attributes.keys())
+        return tuple(cls.get_declared().keys())
 
     def __init__(self, *args, **kwargs):
 
@@ -45,7 +45,7 @@ class Token(FrozenStruct):
             else:
                 assert False, "Unexpected position argument: %s" % (arg, )
 
-        token_attributes = self.Meta.token_attributes
+        token_attributes = self.get_declared()
 
         if type(self) is Token:
             # Make a fake definition if user did not bother to make a proper sub-class
@@ -105,7 +105,8 @@ class Token(FrozenStruct):
         return self
 
 
-@declarative(Token, 'tokens')
+@declarative(Token)
+@with_meta
 class ContainerBase(object):
     pass
 
@@ -119,7 +120,7 @@ class TokenContainerMeta(ContainerBase.__class__):
         prefix = getattr(cls.get_meta(), 'prefix', cls.__name__)
 
         all_tokens = []
-        for token_name, token in cls.get_meta().tokens.items():
+        for token_name, token in cls.get_declared().items():
 
             overrides = Struct()
 
@@ -140,19 +141,19 @@ class TokenContainerMeta(ContainerBase.__class__):
 
             all_tokens.append(token)
 
-        cls.Meta.tokens = OrderedDict((t.name, t) for t in all_tokens)
+        cls.tokens = OrderedDict((t.name, t) for t in all_tokens)
 
     def __iter__(cls):
-        return iter(cls.Meta.tokens.values())
+        return iter(cls.tokens.values())
 
     def __contains__(cls, item):
-        return item in cls.Meta.tokens.values()
+        return item in cls.tokens.values()
 
     def __len__(cls):
-        return len(cls.Meta.tokens.values())
+        return len(cls.tokens.values())
 
     def __getitem__(cls, key):
-        return cls.Meta.tokens[key]
+        return cls.tokens[key]
 
 
 class TokenContainer(ContainerBase):

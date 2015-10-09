@@ -144,7 +144,7 @@ def test_container_inheritance_ordering():
         boink = MyToken(stuff='Other Stuff')
 
     assert list(MoreTokens) == [MyTokens.foo, MyTokens.bar, MoreTokens.boink]
-    assert MoreTokens.foo is MyTokens.foo
+    assert MoreTokens.foo == MyTokens.foo
 
 
 def test_container_inheritance_override():
