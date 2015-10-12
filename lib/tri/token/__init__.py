@@ -7,7 +7,7 @@ from tri.declarative import creation_ordered, declarative, with_meta
 from tri.struct import FrozenStruct, Struct
 
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 
 class PRESENT(object):
@@ -142,6 +142,8 @@ class TokenContainerMeta(ContainerBase.__class__):
             all_tokens.append(token)
 
         cls.tokens = OrderedDict((t.name, t) for t in all_tokens)
+
+        cls._declarative_members = cls.tokens  # @todo there should be a set_declared(..) in tri.declarative...
 
     def __iter__(cls):
         return iter(cls.tokens.values())

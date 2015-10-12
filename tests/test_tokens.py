@@ -144,7 +144,7 @@ def test_container_inheritance_ordering():
         boink = MyToken(stuff='Other Stuff')
 
     assert list(MoreTokens) == [MyTokens.foo, MyTokens.bar, MoreTokens.boink]
-    assert MoreTokens.foo == MyTokens.foo
+    assert MoreTokens.foo is MyTokens.foo
 
 
 def test_container_inheritance_override():
@@ -154,6 +154,7 @@ def test_container_inheritance_override():
 
     assert len(MoreTokens) == 2
     assert MoreTokens.foo != MyTokens.foo
+    assert MoreTokens.bar is MyTokens.bar
     assert MoreTokens.foo.stuff == 'Override'
 
 
@@ -275,6 +276,36 @@ def test_prefix():
         foo = TokenWithPrefix()
 
     assert str(TokensWithPrefix.foo) == "test.foo"
+
+
+def test_prefix_inheritance():
+
+    class AToken(Token):
+        name = TokenAttribute()
+        prefix = TokenAttribute()
+
+    class FooTokens(TokenContainer):
+
+        class Meta:
+            prefix = 'f'
+
+        foo = AToken()
+
+    class BarTokens(TokenContainer):
+
+        class Meta:
+            prefix = 'b'
+
+        bar = AToken()
+
+    assert 'f.foo' == str(FooTokens.foo)
+    assert 'b.bar' == str(BarTokens.bar)
+
+    class CommonTokens(FooTokens, BarTokens):
+        pass
+
+    assert 'f.foo' == str(CommonTokens.foo)
+    assert 'b.bar' == str(CommonTokens.bar)
 
 
 def test_to_csv_no_spec():
