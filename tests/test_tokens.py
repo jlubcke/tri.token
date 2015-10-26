@@ -123,6 +123,11 @@ def test_other_field():
     assert [token.stuff for token in MyTokens] == ['Hello', 'World']
 
 
+def test_get():
+    assert MyTokens.get('foo') is MyTokens.foo
+    assert MyTokens.get('ASDASDDS', 'default') == 'default'
+
+
 def test_inheritance():
 
     class FooToken(Token):
@@ -347,3 +352,16 @@ def test_to_rst():
 +------+-------+
 | foo  | Hello |
 +------+-------+"""
+
+
+def test_to_confluence():
+    class TestTokensWithDocumentation(MyTokens):
+
+        class Meta:
+            documentation_columns = ['name', 'stuff']
+
+    assert TestTokensWithDocumentation.to_confluence() == """\
+||name||stuff||
+|foo|Hello|
+|bar|World|
+"""

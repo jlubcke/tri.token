@@ -42,7 +42,7 @@ class Token(FrozenStruct):
         for arg in args:
             if isinstance(arg, PRESENT):
                 kwargs[arg.attribute_name] = PRESENT
-            else:
+            else:  # pragma: no cover
                 assert False, "Unexpected position argument: %s" % (arg, )
 
         token_attributes = self.get_declared()
@@ -167,11 +167,11 @@ class TokenContainer(ContainerBase):
         documentation_columns = ['name']
 
     @classmethod
-    def __iter__(cls):
+    def __iter__(cls):  # pragma: no cover
         raise Exception("Not implemented here")  # Done in the metaclass, only here as a comfort blanket for PyCharm
 
     @classmethod
-    def __len__(cls):
+    def __len__(cls):  # pragma: no cover
         raise Exception("Not implemented here")  # Done in the metaclass, only here as a comfort blanket for PyCharm
 
     @classmethod
@@ -209,7 +209,7 @@ class TokenContainer(ContainerBase):
         return '\n'.join(lines)
 
     @classmethod
-    def to_excel(cls):
+    def to_excel(cls):  # pragma: no cover
         from xlwt import Workbook
         wb = Workbook(encoding="utf8")
         sheet = wb.add_sheet('Attributes')
@@ -228,7 +228,7 @@ class TokenContainer(ContainerBase):
         return result.getvalue()
 
 
-def generate_documentation(token_container):
+def generate_documentation(token_container):  # pragma: no cover
     import argparse
     parser = argparse.ArgumentParser(description='Generate documentation of fields.')
     group = parser.add_mutually_exclusive_group(required=True)
