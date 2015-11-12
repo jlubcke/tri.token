@@ -4,10 +4,9 @@ from io import BytesIO
 from StringIO import StringIO
 
 from tri.declarative import creation_ordered, declarative, with_meta
-from tri.struct import FrozenStruct, Struct
+from tri.struct import FrozenStruct, Struct, merged
 
-
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 
 class PRESENT(object):
@@ -93,7 +92,7 @@ class Token(FrozenStruct):
         return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
 
     def duplicate(self, **overrides):
-        result = self + overrides
+        result = merged(self, overrides)
         # __setattr__ since FrozenStruct is read-only
         object.__setattr__(result, '_index', self._index)
         return result

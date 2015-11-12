@@ -32,7 +32,7 @@ def test_immutable():
     d = {MyTokens.foo: 17}
     assert d[MyTokens.foo] is 17
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         MyTokens.foo.stuff = "Not likely"
 
 
