@@ -142,7 +142,7 @@ class TokenContainerMeta(ContainerBase.__class__):
 
         cls.tokens = OrderedDict((t.name, t) for t in all_tokens)
 
-        cls._declarative_members = cls.tokens  # @todo there should be a set_declared(..) in tri.declarative...
+        cls.set_declared(cls.tokens)
 
     def __iter__(cls):
         return iter(cls.tokens.values())
