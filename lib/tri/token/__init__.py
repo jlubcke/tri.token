@@ -164,6 +164,7 @@ class TokenContainer(ContainerBase):
     class Meta:
         prefix = ''
         documentation_columns = ['name']
+        documentation_sort_key = None
 
     @classmethod
     def __iter__(cls):  # pragma: no cover
@@ -181,11 +182,19 @@ class TokenContainer(ContainerBase):
             return default
 
     @classmethod
+    def in_documentation_order(cls):
+        tokens = list(cls)
+        sort_key = cls.get_meta().documentation_sort_key
+        if sort_key is not None:
+            tokens.sort(key=sort_key)
+        return tokens
+
+    @classmethod
     def to_csv(cls):
         out = StringIO()
         w = csv.writer(out)
         w.writerow(cls.get_meta().documentation_columns)
-        for token in cls:
+        for token in cls.in_documentation_order():
             w.writerow([getattr(token, a) or '' for a in cls.get_meta().documentation_columns])
         return out.getvalue()
 
@@ -193,7 +202,7 @@ class TokenContainer(ContainerBase):
     def to_confluence(cls):
         out = StringIO()
         out.write('||' + '||'.join(cls.get_meta().documentation_columns) + '||\n')
-        for token in cls:
+        for token in cls.in_documentation_order():
             out.write('|' + '|'.join(getattr(token, a) or ' ' for a in cls.get_meta().documentation_columns) + '|\n')
         return out.getvalue()
 
@@ -201,7 +210,7 @@ class TokenContainer(ContainerBase):
     def to_rst(cls):
         from prettytable import from_csv
         table = from_csv(StringIO(cls.to_csv()))
-        lines = table.get_string(hrules=True, sortby=table.field_names[0]).splitlines()
+        lines = table.get_string(hrules=True).splitlines()
 
         # Special separator between header and rows in RST
         lines[2] = lines[2].replace('-', '=')
@@ -216,7 +225,7 @@ class TokenContainer(ContainerBase):
         for i, heading in enumerate(cls.get_meta().documentation_columns):
             sheet.write(0, i, heading)
 
-        for row, field in enumerate(iter(cls)):
+        for row, field in enumerate(cls.in_documentation_order()):
             for col, heading in enumerate(cls.get_meta().documentation_columns):
                 value = getattr(field, heading)
                 if value:

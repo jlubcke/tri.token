@@ -326,6 +326,19 @@ bar\r
 """
 
 
+def test_to_csv_sorting():
+    class TestTokensWithSortOrder(MyTokens):
+        class Meta:
+            documentation_columns = ['name', 'stuff']
+            documentation_sort_key = lambda token: token.stuff[::-1]  # Sort on last character
+
+    assert TestTokensWithSortOrder.to_csv() == """\
+name,stuff\r
+bar,World\r
+foo,Hello\r
+"""
+
+
 def test_to_csv():
     class TestTokensWithDocumentation(MyTokens):
         class Meta:
@@ -343,6 +356,7 @@ def test_to_rst():
 
         class Meta:
             documentation_columns = ['name', 'stuff']
+            documentation_sort_key = lambda token: token.name
 
     assert TestTokensWithDocumentation.to_rst() == """\
 +------+-------+
