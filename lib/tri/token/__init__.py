@@ -1,7 +1,12 @@
 from collections import Hashable, OrderedDict
 import csv
+import sys
 from io import BytesIO
-from StringIO import StringIO
+
+if sys.version_info < (3, 0):
+    from StringIO import StringIO
+else:
+    from io import StringIO
 
 from tri.declarative import creation_ordered, declarative, with_meta
 from tri.struct import FrozenStruct, Struct, merged
@@ -157,9 +162,11 @@ class TokenContainerMeta(ContainerBase.__class__):
         return cls.tokens[key]
 
 
-class TokenContainer(ContainerBase):
+def with_metaclass(base, meta):
+    return meta(base.__name__, (base,), {})
 
-    __metaclass__ = TokenContainerMeta
+
+class TokenContainer(with_metaclass(ContainerBase, TokenContainerMeta)):
 
     class Meta:
         prefix = ''
@@ -182,34 +189,40 @@ class TokenContainer(ContainerBase):
             return default
 
     @classmethod
-    def in_documentation_order(cls):
+    def in_documentation_order(cls, sort_key=None):
         tokens = list(cls)
-        sort_key = cls.get_meta().documentation_sort_key
+        if sort_key is None:
+            sort_key = cls.get_meta().documentation_sort_key
         if sort_key is not None:
             tokens.sort(key=sort_key)
         return tokens
 
     @classmethod
-    def to_csv(cls):
+    def to_csv(cls, columns=None, sort_key=None):
         out = StringIO()
         w = csv.writer(out)
-        w.writerow(cls.get_meta().documentation_columns)
-        for token in cls.in_documentation_order():
-            w.writerow([getattr(token, a) or '' for a in cls.get_meta().documentation_columns])
+        if columns is None:
+            columns = cls.get_meta().documentation_columns
+        w.writerow(columns)
+        for token in cls.in_documentation_order(sort_key):
+            w.writerow([(getattr(token, a) or '') for a in columns])
         return out.getvalue()
 
     @classmethod
-    def to_confluence(cls):
+    def to_confluence(cls, columns=None, sort_key=None):
         out = StringIO()
-        out.write('||' + '||'.join(cls.get_meta().documentation_columns) + '||\n')
-        for token in cls.in_documentation_order():
-            out.write('|' + '|'.join(getattr(token, a) or ' ' for a in cls.get_meta().documentation_columns) + '|\n')
+        if columns is None:
+            columns = cls.get_meta().documentation_columns
+        out.write('||' + '||'.join(columns) + '||\n')
+        for token in cls.in_documentation_order(sort_key):
+            out.write('|' + '|'.join((getattr(token, a) or ' ') for a in columns) + '|\n')
         return out.getvalue()
 
     @classmethod
-    def to_rst(cls):
+    def to_rst(cls, columns=None):
+        input = StringIO(cls.to_csv(columns))
         from prettytable import from_csv
-        table = from_csv(StringIO(cls.to_csv()))
+        table = from_csv(input)
         lines = table.get_string(hrules=True).splitlines()
 
         # Special separator between header and rows in RST
@@ -217,16 +230,19 @@ class TokenContainer(ContainerBase):
         return '\n'.join(lines)
 
     @classmethod
-    def to_excel(cls):  # pragma: no cover
+    def to_excel(cls, columns=None, sort_key=None):  # pragma: no cover
         from xlwt import Workbook
         wb = Workbook(encoding="utf8")
         sheet = wb.add_sheet('Attributes')
 
-        for i, heading in enumerate(cls.get_meta().documentation_columns):
+        if columns is None:
+            columns = cls.get_meta().documentation_columns
+
+        for i, heading in enumerate(columns):
             sheet.write(0, i, heading)
 
-        for row, field in enumerate(cls.in_documentation_order()):
-            for col, heading in enumerate(cls.get_meta().documentation_columns):
+        for row, field in enumerate(cls.in_documentation_order(sort_key)):
+            for col, heading in enumerate(columns):
                 value = getattr(field, heading)
                 if value:
                     sheet.write(row + 1, col, value)
@@ -246,10 +262,10 @@ def generate_documentation(token_container):  # pragma: no cover
     group.add_argument('-e', '--excel', action='store_true', help='Generate a excel table of all fields')
     args = parser.parse_args()
     if args.csv:
-        print token_container.to_csv()
+        print(token_container.to_csv())
     if args.wiki:
-        print token_container.to_confluence()
+        print(token_container.to_confluence())
     if args.rst:
-        print token_container.to_rst()
+        print(token_container.to_rst())
     if args.excel:
-        print token_container.to_excel()
+        print(token_container.to_excel())

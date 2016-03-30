@@ -1,10 +1,15 @@
 from copy import copy, deepcopy
 import pickle
+import sys
 
 import pytest
-from tri.cache.memoize import memoize
 
 from tri.token import TokenContainer, Token, TokenAttribute, PRESENT
+
+try:
+    from tri.cache.memoize import memoize
+except ImportError:
+    memoize = None
 
 
 class MyToken(Token):
@@ -41,7 +46,7 @@ def test_immutable_attribute_values():
     with pytest.raises(ValueError) as exception_info:
         MyToken(stuff=[])
 
-    assert exception_info.value.message == "Attribute stuff has unhashable value: []"
+    assert "Attribute stuff has unhashable value: []" in str(exception_info)
 
 
 def test_copy():
@@ -96,6 +101,7 @@ def test_names():
     assert [token.name for token in MyTokens] == ['foo', 'bar']
 
 
+@pytest.mark.skipif(sys.version_info > (3, 0), reason="unicode is python 2")
 def test_unicode():
     assert unicode(MyToken()) == u'(unnamed)'
     assert unicode(MyTokens.foo) == u'foo'
@@ -184,6 +190,7 @@ def test_token_without_subclassing():
     assert list(TestTokens) == list(sorted(set(TestTokens)))
 
 
+@pytest.mark.skipif(memoize is None, reason="tri.cache.memoize not available")
 def test_extra_stuff():
 
     @memoize
