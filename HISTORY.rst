@@ -6,6 +6,8 @@ Changelog
 
 * Added documentation generation sort customisation
 
+* Added python 3 support
+
 
 0.5.0 (2016-02-01)
 ~~~~~~~~~~~~~~~~~~
