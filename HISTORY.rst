@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.6.0 ()
-~~~~~~~~
+0.6.0 (2016-04-11)
+~~~~~~~~~~~~~~~~~~
 
 * Added documentation generation sort customisation
 

@@ -219,8 +219,8 @@ class TokenContainer(with_metaclass(ContainerBase, TokenContainerMeta)):
         return out.getvalue()
 
     @classmethod
-    def to_rst(cls, columns=None):
-        input = StringIO(cls.to_csv(columns))
+    def to_rst(cls, columns=None, sort_key=None):
+        input = StringIO(cls.to_csv(columns, sort_key))
         from prettytable import from_csv
         table = from_csv(input)
         lines = table.get_string(hrules=True).splitlines()
