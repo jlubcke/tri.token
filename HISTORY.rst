@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.0 (----------)
+1.0.0 (2016-09-27)
 ~~~~~~~~~~~~~~~~~~
 
 * First released version on github
