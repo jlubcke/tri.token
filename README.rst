@@ -180,4 +180,4 @@ BSD
 Documentation
 -------------
 
-http://tristruct.readthedocs.org.
+http://tritoken.readthedocs.org.

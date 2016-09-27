@@ -3,15 +3,16 @@ import csv
 import sys
 from io import BytesIO
 
+from tri.declarative import creation_ordered, declarative, with_meta
+from tri.struct import FrozenStruct, Struct, merged
+
 if sys.version_info < (3, 0):
     from StringIO import StringIO
 else:
     from io import StringIO
 
-from tri.declarative import creation_ordered, declarative, with_meta
-from tri.struct import FrozenStruct, Struct, merged
 
-__version__ = '0.6.0'
+__version__ = '1.0.0'
 
 
 class PRESENT(object):
