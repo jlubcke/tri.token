@@ -1,6 +1,16 @@
 Changelog
 =========
 
+1.0.0 (----------)
+~~~~~~~~~~~~~~~~~~
+
+* First released version on github
+
+* Added documentation
+
+* Cleanup of build machinery
+
+
 0.6.0 (2016-04-11)
 ~~~~~~~~~~~~~~~~~~
 
