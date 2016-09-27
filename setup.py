@@ -69,7 +69,7 @@ class ReleaseCheck(Command):
 setup(
     name='tri.token',
     version=read_version(),
-    description='tri.token supplies classes that can be used like dictionaries and as objects with attribute access at the same time',
+    description='tri.token provides enriched enum functionality',
     long_description=readme + '\n\n' + history,
     author='Johan Lübcke',
     author_email='johan.lubcke@trioptima.com',
