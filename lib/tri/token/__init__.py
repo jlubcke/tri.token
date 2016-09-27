@@ -9,7 +9,7 @@ from tri.struct import FrozenStruct, Struct, merged
 if sys.version_info < (3, 0):
     from StringIO import StringIO
 else:
-    from io import StringIO
+    from io import StringIO  # pragma: no cover
 
 
 __version__ = '1.0.0'
