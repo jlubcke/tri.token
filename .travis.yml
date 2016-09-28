@@ -2,7 +2,7 @@ language: python
 python:
 - '2.7'
 - '3.5'
-- 'pypy'
+- pypy
 install: pip install tox codecov
 script: make coverage
 after_success: codecov
@@ -10,7 +10,7 @@ deploy:
   provider: pypi
   user: j_lubcke
   password:
-    secure: avY6WD95XBnoH+wUc6MVhpTia3cf7NXdfDlJapUGnYoSJLB4ISb6ZPG0JUoQ76kcOquKCo09d250H1FcRCsYPkhgFiWTk9L1qGi3tVx65345cwy4sPJn2HDzX/XUkXOT3G+litf7h4P/Z6BcbEy6Wu0kIy9UzCwfHkkTMuC/ZiwyIfbRpX1MJzLzZeuVHVtHLKAweq24rl9VEKxjOM0gd2h82LDMT9IE90s4qwq6iUqUAnU6FA2hy5QC6tAWcl5Rrrhax0y0EeyFnFS4OxsdBP1gFmMvfSLfD1mhqKNNBElf5RSkRcv5NE0jXVi73/UVkbwWibA3nJoYYJPDV+om3moUy/j39w/ERGQL9uBoOQuRO+K/7Ph7G6Xk63dVSRJvbICEc2sUL9j4tjwc+ZiiG3rU5GFvuf4gnPC/hJ/fd0QTaJXQe/f0hwdwovo7SCWP9TmoKsp7b1BnARS3IAb/NMjzzmNg6Xa2Csf1mdgGVPQXckG41syotjowq8Q2IW5IVL4HvHy8QicJUYtlmXfH4s8r+urZWXkX5UbfqaF+6EsR6rw1p0NcHqcO1fbofE/X7EUHgaBub9RGhG1K+nDAPa5oZYmqb9ovU7YnlgEGcKqMW4ifJs/qkiIGNOR8GGHIHeZDNxHdox9TQNSA0YNkUezR8tZxTeM+foD9QhC34RY=
+    secure: HD0UuOjLAH8n6fyrMAhOF6LZRAknVF0VypraXFzCfDzEuZ2atCZ9xJfQ+oXdUPNN1S1Ux+5BDRJypAQSuPZDmq23/bDoypgkHNFflpmhskMG+zeZ7Hu3Op12vdDAe2ga7tEMKTBo9KSABNngCFbQvRdgNtEjx5AGKF+0kNYDpBxMYU7YcFpBO33KHiNsG1rTctQMNGn/Iml8c368IAo0D1fBFFD1Ah0LaV2ORFICSn5DF5hMY1zfJ2ctaXKD7VaIisXvfgfNQETm5WJSMO2k10+yraI250OfHA6wbR1q+a9R7u4mHefbRVYAA7TPG3EaeLdE5Mh75N2CPNzLV8w+sLOwKj9q8z3+3N+flRu4jYABgDS6F+mGeUmZfMdBU7D0CKr0E2MNEJ8XS45SRQ+Tiu6ZZPuCDPnyqVzB10Orkl73uFsxw+xkt0oiLmqQqaXbCb/tjNXaLLLO2Brkc5N4sOnMmxAOi7rpKn3kTHUio03gYzC7UD2US9vlOXEMu0uFiQmgxWm8P/vSlHuuvJWcudVSR0RSuim54xoCevbEyF04SJXudzQqBlq5WTITRXmp3BM81C9oltsscxJ2G9F+v1IH0TVHI1iVuf/vsnLG4k3iabubTTDxMSk6jNIVhq0fli/dW64Hr8V9kTXX7Lc0/hc+tsYOEPlE9yfATQAJ7Sc=
   on:
     tags: true
     repo: TriOptima/tri.token
