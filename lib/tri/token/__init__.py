@@ -6,13 +6,13 @@ from io import BytesIO
 from tri.declarative import creation_ordered, declarative, with_meta
 from tri.struct import FrozenStruct, Struct, merged
 
-if sys.version_info < (3, 0):
+if sys.version_info < (3, 0):  # pragma: no mutate
     from StringIO import StringIO
 else:
     from io import StringIO  # pragma: no cover
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.0'  # pragma: no mutate
 
 
 class PRESENT(object):
@@ -134,7 +134,8 @@ class TokenContainerMeta(ContainerBase.__class__):
             else:
                 assert token.name == token_name
 
-            if 'prefix' in token:
+            if prefix:
+                assert 'prefix' in token, 'You must define a token attribute called "prefix"'
                 if token.prefix is None:
                     overrides.prefix = prefix
 
@@ -176,11 +177,13 @@ class TokenContainer(with_metaclass(ContainerBase, TokenContainerMeta)):
 
     @classmethod
     def __iter__(cls):  # pragma: no cover
-        raise Exception("Not implemented here")  # Done in the metaclass, only here as a comfort blanket for PyCharm
+        # Done in the metaclass, only here as a comfort blanket for PyCharm
+        raise Exception("Not implemented here")  # pragma: no mutate
 
     @classmethod
     def __len__(cls):  # pragma: no cover
-        raise Exception("Not implemented here")  # Done in the metaclass, only here as a comfort blanket for PyCharm
+        # Done in the metaclass, only here as a comfort blanket for PyCharm
+        raise Exception("Not implemented here")  # pragma: no mutate
 
     @classmethod
     def get(cls, key, default=None):
@@ -255,12 +258,12 @@ class TokenContainer(with_metaclass(ContainerBase, TokenContainerMeta)):
 
 def generate_documentation(token_container):  # pragma: no cover
     import argparse
-    parser = argparse.ArgumentParser(description='Generate documentation of fields.')
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-c', '--csv', action='store_true', help='Generate a csv description of all fields')
-    group.add_argument('-w', '--wiki', action='store_true', help='Generate a confluence wiki markup description of all fields')
-    group.add_argument('-r', '--rst', action='store_true', help='Generate a RST table of all fields')
-    group.add_argument('-e', '--excel', action='store_true', help='Generate a excel table of all fields')
+    parser = argparse.ArgumentParser(description='Generate documentation of fields.')  # pragma: no mutate
+    group = parser.add_mutually_exclusive_group(required=True)  # pragma: no mutate
+    group.add_argument('-c', '--csv', action='store_true', help='Generate a csv description of all fields')  # pragma: no mutate
+    group.add_argument('-w', '--wiki', action='store_true', help='Generate a confluence wiki markup description of all fields')  # pragma: no mutate
+    group.add_argument('-r', '--rst', action='store_true', help='Generate a RST table of all fields')  # pragma: no mutate
+    group.add_argument('-e', '--excel', action='store_true', help='Generate a excel table of all fields')  # pragma: no mutate
     args = parser.parse_args()
     if args.csv:
         print(token_container.to_csv())

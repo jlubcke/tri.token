@@ -46,7 +46,7 @@ def test_immutable_attribute_values():
     with pytest.raises(ValueError) as exception_info:
         MyToken(stuff=[])
 
-    assert "Attribute stuff has unhashable value: []" in str(exception_info)
+    assert "Attribute stuff has unhashable value: []" == str(exception_info.value)
 
 
 def test_copy():
@@ -288,6 +288,21 @@ def test_prefix():
         foo = TokenWithPrefix()
 
     assert str(TokensWithPrefix.foo) == "test.foo"
+    assert repr(TokensWithPrefix.foo) == "<TokenWithPrefix: test.foo>"
+
+
+def test_prefix_error():
+    class TokenWithoutPrefix(Token):
+        name = TokenAttribute()
+
+    with pytest.raises(AssertionError) as e:
+        class TokensWithoutPrefix(TokenContainer):
+            class Meta:
+                prefix = "test"
+
+            foo = TokenWithoutPrefix()
+
+    assert 'You must define a token attribute called "prefix"' == str(e.value)
 
 
 def test_prefix_inheritance():
@@ -348,6 +363,8 @@ foo,Hello\r
 
 def test_to_csv():
     class TestTokensWithDocumentation(MyTokens):
+        baz = Token(stuff=None)
+
         class Meta:
             documentation_columns = ['name', 'stuff']
 
@@ -355,6 +372,7 @@ def test_to_csv():
 name,stuff\r
 foo,Hello\r
 bar,World\r
+baz,\r
 """
 
 
