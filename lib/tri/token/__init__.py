@@ -19,6 +19,7 @@ class PRESENT(object):
     def __init__(self, attribute_name):
         self.attribute_name = attribute_name
 
+
 MISSING = object()
 
 
