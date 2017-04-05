@@ -6,10 +6,14 @@ import pytest
 
 from tri.token import TokenContainer, Token, TokenAttribute, PRESENT
 
+
+def memoize_dummy(f):
+    return f
+
 try:
     from tri.cache.memoize import memoize
 except ImportError:
-    memoize = None
+    memoize = memoize_dummy
 
 
 class MyToken(Token):
@@ -190,7 +194,7 @@ def test_token_without_subclassing():
     assert list(TestTokens) == list(sorted(set(TestTokens)))
 
 
-@pytest.mark.skipif(memoize is None, reason="tri.cache.memoize not available")
+@pytest.mark.skipif(memoize is memoize_dummy, reason="tri.cache.memoize not available")
 def test_extra_stuff():
 
     @memoize

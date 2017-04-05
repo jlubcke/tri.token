@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.1 (2017-04-05)
+~~~~~~~~~~~~~~~~~~
+
+* Changed metaclass handling to make PyCharm understand it
+
+
 1.0.0 (2016-09-27)
 ~~~~~~~~~~~~~~~~~~
 

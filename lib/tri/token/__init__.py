@@ -12,7 +12,7 @@ else:
     from io import StringIO  # pragma: no cover
 
 
-__version__ = '1.0.0'  # pragma: no mutate
+__version__ = '1.0.1'  # pragma: no mutate
 
 
 class PRESENT(object):
@@ -165,11 +165,19 @@ class TokenContainerMeta(ContainerBase.__class__):
         return cls.tokens[key]
 
 
-def with_metaclass(base, meta):
-    return meta(base.__name__, (base,), {})
+def with_metaclass(meta, *bases):
+    """Create a base class with a metaclass."""
+    # This requires a bit of explanation: the basic idea is to make a dummy
+    # metaclass for one level of class instantiation that replaces itself with
+    # the actual metaclass.
+    class metaclass(meta):
+
+        def __new__(cls, name, this_bases, d):
+            return meta(name, bases, d)
+    return type.__new__(metaclass, 'temporary_class', (), {})
 
 
-class TokenContainer(with_metaclass(ContainerBase, TokenContainerMeta)):
+class TokenContainer(with_metaclass(TokenContainerMeta, ContainerBase)):
 
     class Meta:
         prefix = ''
