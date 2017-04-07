@@ -26,6 +26,7 @@ class MyTokens(TokenContainer):
 
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
+    baz = MyToken(stuff='')
 
 
 def test_in():
@@ -43,6 +44,10 @@ def test_immutable():
 
     with pytest.raises(TypeError):
         MyTokens.foo.stuff = "Not likely"
+
+
+def test_duplicate():
+    assert MyTokens.foo.duplicate()._index == MyTokens.foo._index
 
 
 def test_immutable_attribute_values():
@@ -102,7 +107,7 @@ def test_token_sorting():
 
 
 def test_names():
-    assert [token.name for token in MyTokens] == ['foo', 'bar']
+    assert [token.name for token in MyTokens] == ['foo', 'bar', 'baz']
 
 
 @pytest.mark.skipif(sys.version_info > (3, 0), reason="unicode is python 2")
@@ -114,7 +119,7 @@ def test_unicode():
 def test_str():
     assert str(MyToken()) == "(unnamed)"
     assert str(MyTokens.foo) == "foo"
-    assert str(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>]"
+    assert str(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>, <MyToken: baz>]"
 
 
 def test_type_str():
@@ -126,11 +131,11 @@ def test_type_str():
 def test_repr():
     assert repr(MyToken()) == "<MyToken: (unnamed)>"
     assert repr(MyTokens.foo) == "<MyToken: foo>"
-    assert repr(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>]"
+    assert repr(list(MyTokens)) == "[<MyToken: foo>, <MyToken: bar>, <MyToken: baz>]"
 
 
 def test_other_field():
-    assert [token.stuff for token in MyTokens] == ['Hello', 'World']
+    assert [token.stuff for token in MyTokens] == ['Hello', 'World', '']
 
 
 def test_get():
@@ -158,7 +163,7 @@ def test_container_inheritance_ordering():
     class MoreTokens(MyTokens):
         boink = MyToken(stuff='Other Stuff')
 
-    assert list(MoreTokens) == [MyTokens.foo, MyTokens.bar, MoreTokens.boink]
+    assert list(MoreTokens) == [MyTokens.foo, MyTokens.bar, MyTokens.baz, MoreTokens.boink]
     assert MoreTokens.foo is MyTokens.foo
 
 
@@ -167,7 +172,7 @@ def test_container_inheritance_override():
     class MoreTokens(MyTokens):
         foo = MyToken(stuff='Override')
 
-    assert len(MoreTokens) == 2
+    assert len(MoreTokens) == 3
     assert MoreTokens.foo != MyTokens.foo
     assert MoreTokens.bar is MyTokens.bar
     assert MoreTokens.foo.stuff == 'Override'
@@ -339,6 +344,15 @@ def test_prefix_inheritance():
     assert 'b.bar' == str(CommonTokens.bar)
 
 
+def test_description_default():
+
+    foo = TokenAttribute()
+    bar = TokenAttribute(description='desc')
+
+    assert foo.description is None
+    assert bar.description == 'desc'
+
+
 def test_to_csv_no_spec():
 
     class TestTokensWithoutDocumentation(MyTokens):
@@ -349,6 +363,7 @@ def test_to_csv_no_spec():
 name\r
 foo\r
 bar\r
+baz\r
 """
 
 
@@ -356,10 +371,11 @@ def test_to_csv_sorting():
     class TestTokensWithSortOrder(MyTokens):
         class Meta:
             documentation_columns = ['name', 'stuff']
-            documentation_sort_key = lambda token: token.stuff[::-1]  # Sort on last character
+            documentation_sort_key = lambda token: token.stuff[::-1] if token.stuff else ''  # Sort on last character
 
     assert TestTokensWithSortOrder.to_csv() == """\
 name,stuff\r
+baz,\r
 bar,World\r
 foo,Hello\r
 """
@@ -393,6 +409,8 @@ def test_to_rst():
 +======+=======+
 | bar  | World |
 +------+-------+
+| baz  |       |
++------+-------+
 | foo  | Hello |
 +------+-------+"""
 
@@ -407,4 +425,5 @@ def test_to_confluence():
 ||name||stuff||
 |foo|Hello|
 |bar|World|
+|baz| |
 """

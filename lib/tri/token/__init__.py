@@ -49,7 +49,7 @@ class Token(FrozenStruct):
             if isinstance(arg, PRESENT):
                 kwargs[arg.attribute_name] = PRESENT
             else:  # pragma: no cover
-                assert False, "Unexpected position argument: %s" % (arg, )
+                assert False, "Unexpected position argument: %s" % (arg, )  # pragma: no mutate
 
         token_attributes = self.get_declared()
 
@@ -65,7 +65,7 @@ class Token(FrozenStruct):
                 default = None
             new_kwargs[name] = kwargs.pop(name, default)
 
-        assert len(kwargs) == 0, "Unexpected constructor arguments: %s" % (kwargs, )
+        assert len(kwargs) == 0, "Unexpected constructor arguments: %s" % (kwargs, )  # pragma: no mutate
 
         if new_kwargs.name is not None:
             for name, token_attribute in token_attributes.items():
@@ -93,7 +93,7 @@ class Token(FrozenStruct):
         return "<%s: %s%s>" % (type(self).__name__, (self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
 
     def __unicode__(self):
-        return u"%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
+        return u"%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')  # pragma: no mutate
 
     def __str__(self):
         return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
@@ -174,7 +174,7 @@ def with_metaclass(meta, *bases):
 
         def __new__(cls, name, this_bases, d):
             return meta(name, bases, d)
-    return type.__new__(metaclass, 'temporary_class', (), {})
+    return type.__new__(metaclass, 'temporary_class', (), {})  # pragma: no mutate
 
 
 class TokenContainer(with_metaclass(TokenContainerMeta, ContainerBase)):
