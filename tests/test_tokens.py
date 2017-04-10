@@ -10,6 +10,7 @@ from tri.token import TokenContainer, Token, TokenAttribute, PRESENT
 def memoize_dummy(f):
     return f
 
+
 try:
     from tri.cache.memoize import memoize
 except ImportError:
