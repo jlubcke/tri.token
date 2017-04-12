@@ -1,3 +1,11 @@
+.. image:: https://travis-ci.org/TriOptima/tri.token.svg?branch=master
+    :target: https://travis-ci.org/TriOptima/tri.token
+
+
+.. image:: https://codecov.io/github/TriOptima/tri.token/coverage.svg?branch=master
+    :target: https://codecov.io/github/TriOptima/tri.token?branch=master
+
+
 tri.token
 =========
 
