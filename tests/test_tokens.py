@@ -1,6 +1,7 @@
 from copy import copy, deepcopy
 import pickle
 import sys
+from io import BytesIO
 
 import pytest
 
@@ -428,3 +429,25 @@ def test_to_confluence():
 |bar|World|
 |baz| |
 """
+
+
+def test_to_excel():
+    class TestTokensWithDocumentation(MyTokens):
+
+        class Meta:
+            documentation_columns = ['name', 'stuff']
+
+    from xlrd import open_workbook
+    xls = TestTokensWithDocumentation.to_excel()
+    wb = open_workbook(file_contents=xls)
+
+    assert len(wb.sheets()) == 1
+    sheet = wb.sheets()[0]
+    assert sheet.name == 'Attributes'
+    rows = [[cell.value for cell in row] for row in sheet.get_rows()]
+    assert rows == [
+        ['name', 'stuff'],
+        ['foo', 'Hello'],
+        ['bar', 'World'],
+        ['baz', ''],
+    ]

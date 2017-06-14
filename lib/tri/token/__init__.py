@@ -184,12 +184,12 @@ class TokenContainer(with_metaclass(TokenContainerMeta, ContainerBase)):
         documentation_columns = ['name']
         documentation_sort_key = None
 
-    @classmethod
+    @classmethod  # pragma: no mutate
     def __iter__(cls):  # pragma: no cover
         # Done in the metaclass, only here as a comfort blanket for PyCharm
         raise Exception("Not implemented here")  # pragma: no mutate
 
-    @classmethod
+    @classmethod  # pragma: no mutate
     def __len__(cls):  # pragma: no cover
         # Done in the metaclass, only here as a comfort blanket for PyCharm
         raise Exception("Not implemented here")  # pragma: no mutate
@@ -243,7 +243,7 @@ class TokenContainer(with_metaclass(TokenContainerMeta, ContainerBase)):
         return '\n'.join(lines)
 
     @classmethod
-    def to_excel(cls, columns=None, sort_key=None):  # pragma: no cover
+    def to_excel(cls, columns=None, sort_key=None):
         from xlwt import Workbook
         wb = Workbook(encoding="utf8")
         sheet = wb.add_sheet('Attributes')
