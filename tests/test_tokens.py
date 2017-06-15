@@ -1,7 +1,6 @@
 from copy import copy, deepcopy
 import pickle
 import sys
-from io import BytesIO
 
 import pytest
 
