@@ -1,7 +1,7 @@
 language: python
 python:
 - '2.7'
-- '3.5'
+- '3.6'
 - pypy
 install: pip install tox codecov
 script: make coverage
@@ -12,5 +12,6 @@ deploy:
   password:
     secure: HD0UuOjLAH8n6fyrMAhOF6LZRAknVF0VypraXFzCfDzEuZ2atCZ9xJfQ+oXdUPNN1S1Ux+5BDRJypAQSuPZDmq23/bDoypgkHNFflpmhskMG+zeZ7Hu3Op12vdDAe2ga7tEMKTBo9KSABNngCFbQvRdgNtEjx5AGKF+0kNYDpBxMYU7YcFpBO33KHiNsG1rTctQMNGn/Iml8c368IAo0D1fBFFD1Ah0LaV2ORFICSn5DF5hMY1zfJ2ctaXKD7VaIisXvfgfNQETm5WJSMO2k10+yraI250OfHA6wbR1q+a9R7u4mHefbRVYAA7TPG3EaeLdE5Mh75N2CPNzLV8w+sLOwKj9q8z3+3N+flRu4jYABgDS6F+mGeUmZfMdBU7D0CKr0E2MNEJ8XS45SRQ+Tiu6ZZPuCDPnyqVzB10Orkl73uFsxw+xkt0oiLmqQqaXbCb/tjNXaLLLO2Brkc5N4sOnMmxAOi7rpKn3kTHUio03gYzC7UD2US9vlOXEMu0uFiQmgxWm8P/vSlHuuvJWcudVSR0RSuim54xoCevbEyF04SJXudzQqBlq5WTITRXmp3BM81C9oltsscxJ2G9F+v1IH0TVHI1iVuf/vsnLG4k3iabubTTDxMSk6jNIVhq0fli/dW64Hr8V9kTXX7Lc0/hc+tsYOEPlE9yfATQAJ7Sc=
   on:
+    python: 3.6
     tags: true
     repo: TriOptima/tri.token
