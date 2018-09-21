@@ -65,6 +65,8 @@ class Token(FrozenStruct):
                 default = None
             new_kwargs[name] = kwargs.pop(name, default)
 
+        object.__setattr__(self, '__override__', kwargs.pop('__override__', False))
+
         assert len(kwargs) == 0, "Unexpected constructor arguments: %s" % (kwargs, )  # pragma: no mutate
 
         if new_kwargs.name is not None:
@@ -127,6 +129,13 @@ class TokenContainerMeta(ContainerBase.__class__):
 
         all_tokens = []
         for token_name, token in cls.get_declared().items():
+
+            if (
+                token_name in cls.__dict__ and
+                any(token_name in base.get_declared() for base in bases) and
+                not token.__override__
+            ):
+                raise TypeError('Illegal enum value override. Use __override__=True parameter to override.')
 
             overrides = Struct()
 
