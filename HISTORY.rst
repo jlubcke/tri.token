@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.1.0 (----------)
+------------------
+
+* Added requirement to set `__override__=True` parameter for token that shadow token from base class.
+
+
 1.0.1 (2017-04-05)
 ~~~~~~~~~~~~~~~~~~
 

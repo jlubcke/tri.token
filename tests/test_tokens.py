@@ -170,8 +170,13 @@ def test_container_inheritance_ordering():
 
 def test_container_inheritance_override():
 
+    with pytest.raises(TypeError) as e:
+        class SomeMoreTokens(MyTokens):
+            foo = MyToken(stuff='Override')
+    assert "Illegal enum value override. Use __override__=True parameter to override." == str(e.value)
+
     class MoreTokens(MyTokens):
-        foo = MyToken(stuff='Override')
+        foo = MyToken(__override__=True, stuff='Override')
 
     assert len(MoreTokens) == 3
     assert MoreTokens.foo != MyTokens.foo
@@ -384,7 +389,7 @@ foo,Hello\r
 
 def test_to_csv():
     class TestTokensWithDocumentation(MyTokens):
-        baz = Token(stuff=None)
+        baz = Token(__override__=True, stuff=None)
 
         class Meta:
             documentation_columns = ['name', 'stuff']
