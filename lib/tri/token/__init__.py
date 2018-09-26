@@ -12,7 +12,7 @@ else:
     from io import StringIO  # pragma: no cover
 
 
-__version__ = '1.0.1'  # pragma: no mutate
+__version__ = '1.1.0'  # pragma: no mutate
 
 
 class PRESENT(object):
