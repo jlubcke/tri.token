@@ -47,6 +47,7 @@ class Token(FrozenStruct):
 
         for arg in args:
             if isinstance(arg, PRESENT):
+                assert arg.attribute_name not in kwargs, "%s used with PRESENT and kwarg at the same time" % arg.attribute_name
                 kwargs[arg.attribute_name] = PRESENT
             else:  # pragma: no cover
                 assert False, "Unexpected position argument: %s" % (arg, )  # pragma: no mutate
