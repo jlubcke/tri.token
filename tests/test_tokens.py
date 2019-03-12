@@ -41,7 +41,7 @@ def test_in():
 
 def test_immutable():
     d = {MyTokens.foo: 17}
-    assert d[MyTokens.foo] is 17
+    assert d[MyTokens.foo] == 17
 
     with pytest.raises(TypeError):
         MyTokens.foo.stuff = "Not likely"
@@ -113,8 +113,8 @@ def test_names():
 
 @pytest.mark.skipif(sys.version_info > (3, 0), reason="unicode is python 2")
 def test_unicode():
-    assert unicode(MyToken()) == u'(unnamed)'
-    assert unicode(MyTokens.foo) == u'foo'
+    assert unicode(MyToken()) == u'(unnamed)'  # noqa
+    assert unicode(MyTokens.foo) == u'foo'  # noqa
 
 
 def test_str():
