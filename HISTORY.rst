@@ -1,8 +1,14 @@
 Changelog
 =========
 
-1.1.0 (2018-09-26)
+2.0.0 (2019-03-12)
 ------------------
+
+* Drop support for python < v3.0 for better type hint analysis in PyCharm
+
+
+1.1.0 (2018-09-26)
+~~~~~~~~~~~~~~~~~~
 
 * Added requirement to set `__override__=True` parameter for token that shadow token from base class.
 

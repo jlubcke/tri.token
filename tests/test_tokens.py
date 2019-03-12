@@ -1,6 +1,5 @@
 from copy import copy, deepcopy
 import pickle
-import sys
 
 import pytest
 
@@ -109,12 +108,6 @@ def test_token_sorting():
 
 def test_names():
     assert [token.name for token in MyTokens] == ['foo', 'bar', 'baz']
-
-
-@pytest.mark.skipif(sys.version_info > (3, 0), reason="unicode is python 2")
-def test_unicode():
-    assert unicode(MyToken()) == u'(unnamed)'  # noqa
-    assert unicode(MyTokens.foo) == u'foo'  # noqa
 
 
 def test_str():
