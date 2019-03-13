@@ -6,13 +6,11 @@ from io import BytesIO
 from tri.declarative import creation_ordered, declarative, with_meta
 from tri.struct import FrozenStruct, Struct, merged
 
-if sys.version_info < (3, 0):  # pragma: no mutate
-    from StringIO import StringIO
-else:
-    from io import StringIO  # pragma: no cover
+from io import StringIO  # pragma: no cover
 
 
-__version__ = '1.1.0'  # pragma: no mutate
+__version__ = '2.0.0'  # pragma: no mutate
+assert(sys.version_info >= (3, 0))
 
 
 class PRESENT(object):
@@ -175,19 +173,7 @@ class TokenContainerMeta(ContainerBase.__class__):
         return cls.tokens[key]
 
 
-def with_metaclass(meta, *bases):
-    """Create a base class with a metaclass."""
-    # This requires a bit of explanation: the basic idea is to make a dummy
-    # metaclass for one level of class instantiation that replaces itself with
-    # the actual metaclass.
-    class metaclass(meta):
-
-        def __new__(cls, name, this_bases, d):
-            return meta(name, bases, d)
-    return type.__new__(metaclass, 'temporary_class', (), {})  # pragma: no mutate
-
-
-class TokenContainer(with_metaclass(TokenContainerMeta, ContainerBase)):
+class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
 
     class Meta:
         prefix = ''
