@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0.0 (2019-03-12)
+2.0.0 (2019-03-13)
 ------------------
 
 * Drop support for python < v3.0 for better type hint analysis in PyCharm
