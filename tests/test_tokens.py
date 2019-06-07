@@ -11,7 +11,7 @@ def memoize_dummy(f):
 
 
 try:
-    from tri_cache.memoize import memoize
+    from tri_cache import memoize
 except ImportError:
     memoize = memoize_dummy
 
