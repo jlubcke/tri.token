@@ -3,8 +3,8 @@ import csv
 import sys
 from io import BytesIO
 
-from tri.declarative import creation_ordered, declarative, with_meta
-from tri.struct import FrozenStruct, Struct, merged
+from tri_declarative import creation_ordered, declarative, with_meta
+from tri_struct import FrozenStruct, Struct, merged
 
 from io import StringIO  # pragma: no cover
 
