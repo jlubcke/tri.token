@@ -1,6 +1,6 @@
 API documentation
 =================
 
-.. automodule:: tri.token
+.. automodule:: tri_token
    :members:
    :special-members:

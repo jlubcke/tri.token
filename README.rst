@@ -23,7 +23,7 @@ Basic usage
 
 .. code:: python
 
-    from tri.token import Token, TokenAttribute, TokenContainer, PRESENT
+    from tri_token import Token, TokenAttribute, TokenContainer, PRESENT
 
 
     class Taste(Token):

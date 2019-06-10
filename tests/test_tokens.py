@@ -3,7 +3,7 @@ import pickle
 
 import pytest
 
-from tri.token import TokenContainer, Token, TokenAttribute, PRESENT
+from tri_token import TokenContainer, Token, TokenAttribute, PRESENT
 
 
 def memoize_dummy(f):
@@ -11,7 +11,7 @@ def memoize_dummy(f):
 
 
 try:
-    from tri.cache.memoize import memoize
+    from tri_cache import memoize
 except ImportError:
     memoize = memoize_dummy
 
@@ -198,7 +198,7 @@ def test_token_without_subclassing():
     assert list(TestTokens) == list(sorted(set(TestTokens)))
 
 
-@pytest.mark.skipif(memoize is memoize_dummy, reason="tri.cache.memoize not available")
+@pytest.mark.skipif(memoize is memoize_dummy, reason="tri_cache.memoize not available")
 def test_extra_stuff():
 
     @memoize
