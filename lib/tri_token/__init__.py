@@ -1,4 +1,5 @@
-from collections import Hashable, OrderedDict
+from collections import OrderedDict
+from collections.abc import Hashable
 import csv
 import sys
 from io import BytesIO
