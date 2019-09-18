@@ -100,8 +100,11 @@ class Token(FrozenStruct):
     def __str__(self):
         return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
 
-    def duplicate(self, **overrides):
-        result = merged(self, overrides)
+    def with_overrides(self, **overrides):
+        if overrides:
+            result = merged(self, overrides)
+        else:
+            result = self
         # __setattr__ since FrozenStruct is read-only
         object.__setattr__(result, '_index', self._index)
         return result
@@ -149,7 +152,7 @@ class TokenContainerMeta(ContainerBase.__class__):
                 if token.prefix is None:
                     overrides.prefix = prefix
 
-            new_token = token.duplicate(**overrides)
+            new_token = token.with_overrides(**overrides)
 
             if token != new_token:
                 setattr(cls, token_name, new_token)

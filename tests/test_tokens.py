@@ -47,7 +47,7 @@ def test_immutable():
 
 
 def test_duplicate():
-    assert MyTokens.foo.duplicate()._index == MyTokens.foo._index
+    assert MyTokens.foo.with_overrides()._index == MyTokens.foo._index
 
 
 def test_immutable_attribute_values():
