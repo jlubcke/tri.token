@@ -10,7 +10,7 @@ from tri_struct import FrozenStruct, Struct, merged
 from io import StringIO  # pragma: no cover
 
 
-__version__ = '3.0.0'  # pragma: no mutate
+__version__ = '3.0.1'
 assert(sys.version_info >= (3, 0))
 
 

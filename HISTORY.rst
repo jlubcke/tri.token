@@ -6,6 +6,8 @@ Changelog
 
 * Optimization for some common cases
 
+* Support Python 3.8
+
 
 3.0.0 (2019-06-10)
 ~~~~~~~~~~~~~~~~~~
