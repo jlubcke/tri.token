@@ -46,10 +46,6 @@ def test_immutable():
         MyTokens.foo.stuff = "Not likely"
 
 
-def test_duplicate():
-    assert MyTokens.foo.with_overrides()._index == MyTokens.foo._index
-
-
 def test_immutable_attribute_values():
 
     with pytest.raises(ValueError) as exception_info:
@@ -69,8 +65,20 @@ def test_deepcopy():
 
 
 def test_pickle():
-    s = pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL)
-    assert pickle.loads(s) == MyTokens.foo
+    with pytest.raises(AssertionError):
+        s = pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL)
+        assert pickle.loads(s) == MyTokens.foo
+
+
+def test_equal():
+    class A(TokenContainer):
+        foo = Token()
+
+    class B(TokenContainer):
+        foo = Token()
+
+    assert A.foo != B.foo
+    assert not A.foo == B.foo
 
 
 def test_modification():
@@ -103,6 +111,26 @@ def test_token_sorting():
         fourth = MyToken()
         fifth = MyToken()
 
+    assert OrderedTokens.first < OrderedTokens.second
+    assert OrderedTokens.second > OrderedTokens.first
+    assert OrderedTokens.first <= OrderedTokens.second
+    assert OrderedTokens.second >= OrderedTokens.first
+
+    assert [v for k, v in OrderedTokens.__dict__.items() if isinstance(v, Token)] == [
+        OrderedTokens.first,
+        OrderedTokens.second,
+        OrderedTokens.third,
+        OrderedTokens.fourth,
+        OrderedTokens.fifth,
+    ]
+
+    assert list(OrderedTokens) == [
+        OrderedTokens.first,
+        OrderedTokens.second,
+        OrderedTokens.third,
+        OrderedTokens.fourth,
+        OrderedTokens.fifth,
+    ]
     assert list(OrderedTokens) == list(sorted(set(OrderedTokens)))
 
 
