@@ -1,5 +1,4 @@
 import csv
-import csv
 import sys
 from collections import OrderedDict
 from collections.abc import Hashable
