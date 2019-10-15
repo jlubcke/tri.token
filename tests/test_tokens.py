@@ -476,3 +476,11 @@ def test_to_excel():
         ['bar', 'World'],
         ['baz', ''],
     ]
+
+
+def test_compare_with_other_type():
+    assert MyTokens.bar != 17
+
+    with pytest.raises(TypeError):
+        # noinspection PyStatementEffect
+        MyTokens.bar > 17

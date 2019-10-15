@@ -97,22 +97,30 @@ class Token(FrozenStruct):
         super(Token, self).__init__(**new_kwargs)
 
     def __lt__(self, other):
+        if not type(self) is type(other):
+            return NotImplemented
         return self._index < other._index
 
     def __gt__(self, other):
+        if not type(self) is type(other):
+            return NotImplemented
         return self._index > other._index
 
     def __le__(self, other):
+        if not type(self) is type(other):
+            return NotImplemented
         return self._index <= other._index
 
     def __ge__(self, other):
+        if not type(self) is type(other):
+            return NotImplemented
         return self._index >= other._index
 
     def __eq__(self, other):
-        return self._index == other._index
+        return type(self) is type(other) and self._index == other._index
 
     def __ne__(self, other):
-        return self._index != other._index
+        return not self.__eq__(other)
 
     def __hash__(self):
         return FrozenStruct.__hash__(self)

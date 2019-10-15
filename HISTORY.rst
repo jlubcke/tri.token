@@ -1,6 +1,12 @@
 Changelog
 =========
 
+3.1.1 (2019-10-15)
+~~~~~~~~~~~~~~~~~~
+
+* Fixed bug with comparison operators and other types
+
+
 3.1.0 (2019-10-15)
 ~~~~~~~~~~~~~~~~~~
 
