@@ -1,16 +1,24 @@
-from collections import OrderedDict
-from collections.abc import Hashable
+import csv
 import csv
 import sys
-from io import BytesIO
+from collections import OrderedDict
+from collections.abc import Hashable
+from io import (
+    BytesIO,
+    StringIO,  # pragma: no cover
+)
 
-from tri_declarative import creation_ordered, declarative, with_meta
-from tri_struct import FrozenStruct, Struct, merged
+from tri_declarative import (
+    declarative,
+    with_meta,
+)
+from tri_struct import (
+    FrozenStruct,
+    merged,
+    Struct,
+)
 
-from io import StringIO  # pragma: no cover
-
-
-__version__ = '3.0.1'
+__version__ = '3.1.0'
 assert(sys.version_info >= (3, 0))
 
 
@@ -22,7 +30,6 @@ class PRESENT(object):
 MISSING = object()
 
 
-@creation_ordered
 class TokenAttribute(FrozenStruct):
     def __init__(self, **kwargs):
         kwargs.setdefault('description')
@@ -32,7 +39,6 @@ class TokenAttribute(FrozenStruct):
         super(TokenAttribute, self).__init__(**kwargs)
 
 
-@creation_ordered
 @declarative(TokenAttribute, add_init_kwargs=False)
 class Token(FrozenStruct):
 
@@ -91,6 +97,27 @@ class Token(FrozenStruct):
 
         super(Token, self).__init__(**new_kwargs)
 
+    def __lt__(self, other):
+        return self._index < other._index
+
+    def __gt__(self, other):
+        return self._index > other._index
+
+    def __le__(self, other):
+        return self._index <= other._index
+
+    def __ge__(self, other):
+        return self._index >= other._index
+
+    def __eq__(self, other):
+        return self._index == other._index
+
+    def __ne__(self, other):
+        return self._index != other._index
+
+    def __hash__(self):
+        return FrozenStruct.__hash__(self)
+
     def __repr__(self):
         return "<%s: %s%s>" % (type(self).__name__, (self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
 
@@ -100,26 +127,34 @@ class Token(FrozenStruct):
     def __str__(self):
         return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
 
-    def with_overrides(self, **overrides):
-        if overrides:
-            result = merged(self, overrides)
-        else:
-            result = self
-        # __setattr__ since FrozenStruct is read-only
-        object.__setattr__(result, '_index', self._index)
-        return result
-
     def __copy__(self):
         return self
 
     def __deepcopy__(self, _):
         return self
 
+    # See https://stackoverflow.com/questions/46526498/pickle-a-dict-subclass-without-reduce-method-does-not-load-member-attributes/46560454
+    def __reduce__(self):
+        return Struct.__reduce__(self)
+
+    def __getstate__(self):
+        assert False, "Don't pickle Tokens!"
+        # return self, self._index
+
+    def __setstate__(self, state):
+        assert False, "Don't pickle Tokens!"
+        # d, _index = state
+        # dict.update(self, d)
+        # object.__setattr__(self, '_index', _index)
+
 
 @declarative(Token)
 @with_meta
 class ContainerBase(object):
     pass
+
+
+_next_index = 0
 
 
 class TokenContainerMeta(ContainerBase.__class__):
@@ -152,13 +187,17 @@ class TokenContainerMeta(ContainerBase.__class__):
                 if token.prefix is None:
                     overrides.prefix = prefix
 
-            new_token = token.with_overrides(**overrides)
-
-            if token != new_token:
+            if overrides:
+                new_token = merged(token, overrides)
                 setattr(cls, token_name, new_token)
                 token = new_token
 
             all_tokens.append(token)
+
+            # __setattr__ since FrozenStruct is read-only
+            global _next_index
+            object.__setattr__(token, '_index', _next_index)
+            _next_index += 1
 
         cls.tokens = OrderedDict((t.name, t) for t in all_tokens)
 

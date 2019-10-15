@@ -1,6 +1,14 @@
 Changelog
 =========
 
+3.1.0 (2019-10-15)
+~~~~~~~~~~~~~~~~~~
+
+* Bumped dependency tri.declarative to 4.0.0
+
+* Dropped broken implementation of pickle of `Token` (Pickled values had broken ordering)
+
+
 3.0.1 (2019-09-18)
 ~~~~~~~~~~~~~~~~~~
 
