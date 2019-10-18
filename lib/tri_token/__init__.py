@@ -117,7 +117,12 @@ class Token(FrozenStruct):
         return self._index >= other._index
 
     def __eq__(self, other):
-        return type(self) is type(other) and self._index == other._index
+        if type(self) is not type(other):
+            return False
+        try:
+            return self._index == other._index
+        except AttributeError:
+            return self.name == other.name
 
     def __ne__(self, other):
         return not self.__eq__(other)
