@@ -192,8 +192,10 @@ def test_container_inheritance_ordering():
 def test_container_inheritance_override():
 
     with pytest.raises(TypeError) as e:
+        # noinspection PyUnusedLocal
         class SomeMoreTokens(MyTokens):
-            foo = MyToken(stuff='Override')
+            foo = MyToken()
+
     assert "Illegal enum value override. Use __override__=True parameter to override." == str(e.value)
 
     class MoreTokens(MyTokens):
@@ -332,6 +334,7 @@ def test_prefix_error():
         name = TokenAttribute()
 
     with pytest.raises(AssertionError) as e:
+        # noinspection PyUnusedLocal
         class TokensWithoutPrefix(TokenContainer):
             class Meta:
                 prefix = "test"
