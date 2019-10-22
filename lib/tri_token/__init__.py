@@ -1,5 +1,5 @@
 import csv
-import sys
+
 from collections.abc import Hashable
 from io import (
     BytesIO,
@@ -17,7 +17,6 @@ from tri_struct import (
 )
 
 __version__ = '3.1.0'
-assert (sys.version_info >= (3, 0))
 
 
 class PRESENT(object):
@@ -147,14 +146,19 @@ class Token(FrozenStruct):
         return Struct.__reduce__(self)
 
     def __getstate__(self):
-        assert False, "Don't pickle Tokens!"
-        # return self, self._index
+        return (
+            dict(self),
+            getattr(self, '_container', None),
+            getattr(self, '_index', None),
+        )
 
     def __setstate__(self, state):
-        assert False, "Don't pickle Tokens!"
-        # d, _index = state
-        # dict.update(self, d)
-        # object.__setattr__(self, '_index', _index)
+        d, _container, _index = state
+        dict.update(self, d)
+        if _index is not None:
+            object.__setattr__(self, '_index', _index)
+        if _container is not None:
+            object.__setattr__(self, '_container', _container)
 
 
 @declarative(Token)

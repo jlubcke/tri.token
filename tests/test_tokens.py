@@ -65,9 +65,15 @@ def test_deepcopy():
 
 
 def test_pickle():
-    with pytest.raises(AssertionError):
-        s = pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL)
-        assert pickle.loads(s) == MyTokens.foo
+    assert pickle.loads(pickle.dumps(Token(name='foo'), pickle.HIGHEST_PROTOCOL)) == Token(name='foo')
+
+    result = pickle.loads(pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL))
+    assert result == MyTokens.foo
+    assert result._index == MyTokens.foo._index
+    assert result._container == MyTokens.foo._container
+    assert hash(result) == hash(MyTokens.foo)
+    # Identity not retained after pickle. Would need to crawl _container and name in some way.
+    # assert result is MyTokens.foo
 
 
 def test_equal():
