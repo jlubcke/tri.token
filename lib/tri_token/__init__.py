@@ -1,6 +1,5 @@
 import csv
-import sys
-from collections import OrderedDict
+
 from collections.abc import Hashable
 from io import (
     BytesIO,
@@ -18,7 +17,6 @@ from tri_struct import (
 )
 
 __version__ = '3.1.0'
-assert(sys.version_info >= (3, 0))
 
 
 class PRESENT(object):
@@ -40,7 +38,6 @@ class TokenAttribute(FrozenStruct):
 
 @declarative(TokenAttribute, add_init_kwargs=False)
 class Token(FrozenStruct):
-
     name = TokenAttribute()
 
     @classmethod
@@ -54,14 +51,14 @@ class Token(FrozenStruct):
                 assert arg.attribute_name not in kwargs, "%s used with PRESENT and kwarg at the same time" % arg.attribute_name
                 kwargs[arg.attribute_name] = PRESENT
             else:  # pragma: no cover
-                assert False, "Unexpected position argument: %s" % (arg, )  # pragma: no mutate
+                assert False, "Unexpected position argument: %s" % (arg,)  # pragma: no mutate
 
         token_attributes = self.get_declared()
 
         if type(self) is Token:
             # Make a fake definition if user did not bother to make a proper sub-class
             token_attributes_from_kwargs = [(name, TokenAttribute()) for name in kwargs]
-            token_attributes = OrderedDict(list(token_attributes.items()) + token_attributes_from_kwargs)
+            token_attributes = dict(list(token_attributes.items()) + token_attributes_from_kwargs)
 
         new_kwargs = Struct()
         for name, token_attribute in token_attributes.items():
@@ -119,10 +116,12 @@ class Token(FrozenStruct):
     def __eq__(self, other):
         if type(self) is not type(other):
             return False
+        if self.name != other.name:
+            return False
         try:
-            return self._index == other._index
+            return self._container == other._container
         except AttributeError:
-            return self.name == other.name
+            return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -132,9 +131,6 @@ class Token(FrozenStruct):
 
     def __repr__(self):
         return "<%s: %s%s>" % (type(self).__name__, (self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
-
-    def __unicode__(self):
-        return u"%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')  # pragma: no mutate
 
     def __str__(self):
         return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
@@ -150,14 +146,19 @@ class Token(FrozenStruct):
         return Struct.__reduce__(self)
 
     def __getstate__(self):
-        assert False, "Don't pickle Tokens!"
-        # return self, self._index
+        return (
+            dict(self),
+            getattr(self, '_container', None),
+            getattr(self, '_index', None),
+        )
 
     def __setstate__(self, state):
-        assert False, "Don't pickle Tokens!"
-        # d, _index = state
-        # dict.update(self, d)
-        # object.__setattr__(self, '_index', _index)
+        d, _container, _index = state
+        dict.update(self, d)
+        if _index is not None:
+            object.__setattr__(self, '_index', _index)
+        if _container is not None:
+            object.__setattr__(self, '_container', _container)
 
 
 @declarative(Token)
@@ -177,7 +178,7 @@ class TokenContainerMeta(ContainerBase.__class__):
 
         prefix = getattr(cls.get_meta(), 'prefix', cls.__name__)
 
-        all_tokens = []
+        all_tokens = {}
         for token_name, token in cls.get_declared().items():
 
             if (
@@ -204,14 +205,19 @@ class TokenContainerMeta(ContainerBase.__class__):
                 setattr(cls, token_name, new_token)
                 token = new_token
 
-            all_tokens.append(token)
+            if not hasattr(token, '_index'):
+                global _next_index
+                # __setattr__ since FrozenStruct is read-only
+                object.__setattr__(token, '_index', _next_index)
+                _next_index += 1
 
-            # __setattr__ since FrozenStruct is read-only
-            global _next_index
-            object.__setattr__(token, '_index', _next_index)
-            _next_index += 1
+            if not hasattr(token, '_container'):
+                # __setattr__ since FrozenStruct is read-only
+                object.__setattr__(token, '_container', f"{cls.__module__}.{cls.__name__}")
 
-        cls.tokens = OrderedDict((t.name, t) for t in all_tokens)
+            all_tokens[token.name] = token
+
+        cls.tokens = all_tokens
 
         cls.set_declared(cls.tokens)
 
@@ -229,7 +235,6 @@ class TokenContainerMeta(ContainerBase.__class__):
 
 
 class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
-
     class Meta:
         prefix = ''
         documentation_columns = ['name']

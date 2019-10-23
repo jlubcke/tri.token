@@ -65,9 +65,15 @@ def test_deepcopy():
 
 
 def test_pickle():
-    with pytest.raises(AssertionError):
-        s = pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL)
-        assert pickle.loads(s) == MyTokens.foo
+    assert pickle.loads(pickle.dumps(Token(name='foo'), pickle.HIGHEST_PROTOCOL)) == Token(name='foo')
+
+    result = pickle.loads(pickle.dumps(MyTokens.foo, pickle.HIGHEST_PROTOCOL))
+    assert result == MyTokens.foo
+    assert result._index == MyTokens.foo._index
+    assert result._container == MyTokens.foo._container
+    assert hash(result) == hash(MyTokens.foo)
+    # Identity not retained after pickle. Would need to crawl _container and name in some way.
+    # assert result is MyTokens.foo
 
 
 def test_equal():
@@ -192,8 +198,10 @@ def test_container_inheritance_ordering():
 def test_container_inheritance_override():
 
     with pytest.raises(TypeError) as e:
+        # noinspection PyUnusedLocal
         class SomeMoreTokens(MyTokens):
-            foo = MyToken(stuff='Override')
+            foo = MyToken()
+
     assert "Illegal enum value override. Use __override__=True parameter to override." == str(e.value)
 
     class MoreTokens(MyTokens):
@@ -332,6 +340,7 @@ def test_prefix_error():
         name = TokenAttribute()
 
     with pytest.raises(AssertionError) as e:
+        # noinspection PyUnusedLocal
         class TokensWithoutPrefix(TokenContainer):
             class Meta:
                 prefix = "test"
