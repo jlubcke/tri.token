@@ -6,6 +6,10 @@ Changelog
 
 * Fixed bug with comparison operators and other types
 
+* Fixed pickle support
+
+* Fixed equality check
+
 
 3.1.0 (2019-10-15)
 ~~~~~~~~~~~~~~~~~~
