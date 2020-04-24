@@ -16,7 +16,7 @@ from tri_struct import (
     Struct,
 )
 
-__version__ = '3.1.1'
+__version__ = '3.2.0'
 
 
 class PRESENT(object):
