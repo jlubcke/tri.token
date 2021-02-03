@@ -28,7 +28,7 @@ Basic usage
 
     class Taste(Token):
         name = TokenAttribute()
-        display_name = TokenAttribute(value=lambda **kwargs: kwargs['name'].upper() + '!!')
+        display_name = TokenAttribute(value=lambda name, **_: name.upper() + '!!')
         opinion = TokenAttribute()
 
 
