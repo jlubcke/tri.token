@@ -16,7 +16,7 @@ from tri_struct import (
     Struct,
 )
 
-__version__ = '3.3.0'
+__version__ = '3.4.0'
 
 
 class PRESENT(object):
@@ -289,7 +289,7 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
 
     @classmethod
     def to_rst(cls, columns=None, sort_key=None):
-        input = StringIO(cls.to_csv(columns, sort_key))
+        input = StringIO(cls.to_csv(columns, sort_key).replace('\\', '\\\\').replace('`', '\\`').replace('*', '\\*'))
         from prettytable import from_csv
         table = from_csv(input)
         lines = table.get_string(hrules=True).splitlines()
