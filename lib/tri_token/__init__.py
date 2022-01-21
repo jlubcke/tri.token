@@ -16,7 +16,7 @@ from tri_struct import (
     Struct,
 )
 
-__version__ = '3.4.0'
+__version__ = '3.5.0'
 
 
 class PRESENT(object):
@@ -249,6 +249,36 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
     def __len__(cls):  # pragma: no cover
         # Done in the metaclass, only here as a comfort blanket for PyCharm
         raise Exception("Not implemented here")  # pragma: no mutate
+
+    @classmethod
+    def __get_validators__(cls):
+        """
+        Interface method for using a TokenContainer as part of a pydantic model or dataclass
+        """
+        yield cls._validator_for_string
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """
+        Interface method for using a TokenContainer as part of a pydantic model or dataclass
+        """
+        token_names = [token.name for token in cls]
+        field_schema.update(
+            pattern=f"^{'|'.join(token_names)}$",
+            examples=token_names,
+        )
+
+    @classmethod
+    def _validator_for_string(cls, v):
+        """
+        Takes a value and returns either an instance of a Token or a value error
+        """
+        if not isinstance(v, str):
+            raise TypeError('String required')
+        token = cls.get(v)
+        if token is None:
+            raise ValueError('Not a valid token')
+        return token
 
     @classmethod
     def get(cls, key, default=None):

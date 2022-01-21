@@ -1,5 +1,10 @@
 Changelog
 =========
+3.5.0 (2022-01-24)
+~~~~~~~~~~~~~~~~~~
+
+* TokenContainer is now usable within a pydantic dataclass or model.
+
 
 3.4.0 (2022-01-13)
 ~~~~~~~~~~~~~~~~~~
