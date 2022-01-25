@@ -63,3 +63,14 @@ def test_a_useful_schema_is_generated():
         "type": "string"
     }
     assert MyModel.schema()["properties"]["thing"] == expected
+
+
+def test_accidentally_using_the_container_type_directly_produces_a_helpful_error():
+    with pytest.raises(Exception) as error:
+        class MyBrokenModel(BaseModel):
+            thing: MyTokens
+        MyBrokenModel(thing="baz")
+    expected_error = \
+        "MyTokens cannot be used as a type in pydantic. Use MyTokens.__token_class__ " \
+        "instead if you want to hint an instance of a token in this container."
+    assert str(error.value) == expected_error

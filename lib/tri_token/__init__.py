@@ -285,6 +285,16 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
         raise Exception("Not implemented here")  # pragma: no mutate
 
     @classmethod
+    def __get_validators__(cls):
+        """
+        Interface method for pydantic
+        """
+        raise Exception(
+            f"{cls.__name__} cannot be used as a type in pydantic. Use {cls.__name__}.__token_class__ "
+            f"instead if you want to hint an instance of a token in this container."
+        )
+
+    @classmethod
     def _strictly_from_string(cls, value: str):
         """
         Takes a value and returns either an instance of a Token or a value error
