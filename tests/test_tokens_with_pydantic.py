@@ -1,4 +1,4 @@
-from typing import cast, Type
+from typing import TYPE_CHECKING
 
 import pytest
 from pydantic import BaseModel, ValidationError
@@ -13,6 +13,8 @@ class MyToken(Token):
 
 
 class MyTokens(TokenContainer):
+    if TYPE_CHECKING:
+        __token_class__ = MyToken
 
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
@@ -20,14 +22,15 @@ class MyTokens(TokenContainer):
 
 
 class MyOtherTokens(TokenContainer):
+    if TYPE_CHECKING:
+        __token_class__ = MyToken
 
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
 
 
 class MyModel(BaseModel):
-    # The casting here is here to help out pycharm - sadly it can't work out __token_class__ otherwise
-    thing: cast(Type[MyToken], MyTokens.__token_class__)
+    thing: MyTokens.__token_class__
 
 
 class AnotherModel(BaseModel):
