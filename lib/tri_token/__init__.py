@@ -252,7 +252,7 @@ class TokenContainerMeta(ContainerBase.__class__):
                 """
                 Interface method for using a TokenContainer as part of a pydantic model or dataclass
                 """
-                yield cls._validator_for_string
+                yield cls._strictly_from_string
 
             @staticmethod
             def __modify_schema__(field_schema):
@@ -285,13 +285,13 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
         raise Exception("Not implemented here")  # pragma: no mutate
 
     @classmethod
-    def _validator_for_string(cls, v):
+    def _strictly_from_string(cls, value: str):
         """
         Takes a value and returns either an instance of a Token or a value error
         """
-        if not isinstance(v, str):
+        if not isinstance(value, str):
             raise TypeError('String required')
-        token = cls.get(v)
+        token = cls.get(value)
         if token is None:
             raise ValueError('Not a valid token')
         return token
