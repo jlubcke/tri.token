@@ -233,6 +233,40 @@ class TokenContainerMeta(ContainerBase.__class__):
     def __getitem__(cls, key):
         return cls.tokens[key]
 
+    @property
+    def __token_class__(cls):
+        """
+        Returns the class of the token represented by this container (in a way that is compatible with
+        both type checkers and pydantic)
+        """
+        # We're making the assumption that the Container is homogenous so the first token is
+        # the same type as all the others.
+        token_type = list(cls.tokens.values())[0].__class__
+
+        # This class will have the same contract as the actual token type but work with pydantic
+        class _Token(token_type):
+            __container__class__ = cls
+
+            @staticmethod
+            def __get_validators__():
+                """
+                Interface method for using a TokenContainer as part of a pydantic model or dataclass
+                """
+                yield cls._validator_for_string
+
+            @staticmethod
+            def __modify_schema__(field_schema):
+                """
+                Interface method for using a TokenContainer as part of a pydantic model or dataclass
+                """
+                token_names = [token.name for token in cls]
+                field_schema.update(
+                    pattern=f"^{'|'.join(token_names)}$",
+                    examples=token_names,
+                    type="string",
+                )
+        return _Token
+
 
 class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
     class Meta:
@@ -249,24 +283,6 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
     def __len__(cls):  # pragma: no cover
         # Done in the metaclass, only here as a comfort blanket for PyCharm
         raise Exception("Not implemented here")  # pragma: no mutate
-
-    @classmethod
-    def __get_validators__(cls):
-        """
-        Interface method for using a TokenContainer as part of a pydantic model or dataclass
-        """
-        yield cls._validator_for_string
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        """
-        Interface method for using a TokenContainer as part of a pydantic model or dataclass
-        """
-        token_names = [token.name for token in cls]
-        field_schema.update(
-            pattern=f"^{'|'.join(token_names)}$",
-            examples=token_names,
-        )
 
     @classmethod
     def _validator_for_string(cls, v):

@@ -1,3 +1,5 @@
+from typing import cast, Type
+
 import pytest
 from pydantic import BaseModel, ValidationError
 
@@ -17,8 +19,19 @@ class MyTokens(TokenContainer):
     baz = MyToken(stuff='')
 
 
+class MyOtherTokens(TokenContainer):
+
+    foo = MyToken(stuff='Hello')
+    bar = MyToken(stuff='World')
+
+
 class MyModel(BaseModel):
-    thing: MyTokens
+    # The casting here is here to help out pycharm - sadly it can't work out __token_class__ otherwise
+    thing: cast(Type[MyToken], MyTokens.__token_class__)
+
+
+class AnotherModel(BaseModel):
+    thing: MyOtherTokens.__token_class__
 
 
 def test_strings_are_converted_into_the_appropriate_type():
@@ -30,10 +43,20 @@ def test_invalid_strings_raise_an_error():
         MyModel(thing="bob")
 
 
+def test_invalid_strings_raise_an_error_even_if_the_string_would_be_a_valid_token_in_another_container():
+    with pytest.raises(ValidationError):
+        AnotherModel(thing="baz")
+
+
+def test_the_containers_token_property_is_the_type_of_the_tokens():
+    assert issubclass(MyTokens.__token_class__, MyToken)
+
+
 def test_a_useful_schema_is_generated():
     expected = {
         "title": "Thing",
         "pattern": "^foo|bar|baz$",
-        "examples": ["foo", "bar", "baz"]
+        "examples": ["foo", "bar", "baz"],
+        "type": "string"
     }
     assert MyModel.schema()["properties"]["thing"] == expected
