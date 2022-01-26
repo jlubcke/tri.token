@@ -51,10 +51,6 @@ def test_invalid_strings_raise_an_error_even_if_the_string_would_be_a_valid_toke
         AnotherModel(thing="baz")
 
 
-def test_the_containers_token_property_is_the_type_of_the_tokens():
-    assert issubclass(MyTokens.__token_class__, MyToken)
-
-
 def test_a_useful_schema_is_generated():
     expected = {
         "title": "Thing",

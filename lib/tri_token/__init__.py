@@ -239,9 +239,15 @@ class TokenContainerMeta(ContainerBase.__class__):
         Returns the class of the token represented by this container (in a way that is compatible with
         both type checkers and pydantic)
         """
+        token_values = list(cls.tokens.values())
+
+        # This is undefined for empty containers as we can't know the token type
+        if len(token_values) == 0:
+            raise Exception(f"{cls.__name__} has no tokens defined so __token_class__ cannot be used")
+
         # We're making the assumption that the Container is homogenous so the first token is
         # the same type as all the others.
-        token_type = list(cls.tokens.values())[0].__class__
+        token_type = token_values[0].__class__
 
         # This class will have the same contract as the actual token type but work with pydantic
         class _Token(token_type):
