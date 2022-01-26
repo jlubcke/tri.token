@@ -493,3 +493,15 @@ def test_compare_with_other_type():
     with pytest.raises(TypeError):
         # noinspection PyStatementEffect
         MyTokens.bar > 17
+
+
+def test_the_containers_token_class_property_is_the_type_of_the_tokens():
+    assert issubclass(MyTokens.__token_class__, MyToken)
+
+
+def test_the_containers_token_class_property_raises_a_sensible_error_for_an_empty_container():
+    class BrokenTokens(TokenContainer):
+        pass
+    with pytest.raises(Exception) as error:
+        assert issubclass(BrokenTokens.__token_class__, MyToken)
+    assert str(error.value) == "BrokenTokens has no tokens defined so __token_class__ cannot be used"
