@@ -16,7 +16,7 @@ from tri_struct import (
     Struct,
 )
 
-__version__ = '3.5.0'
+__version__ = '3.5.1'
 
 
 class PRESENT(object):
@@ -258,7 +258,7 @@ class TokenContainerMeta(ContainerBase.__class__):
                 """
                 Interface method for using a TokenContainer as part of a pydantic model or dataclass
                 """
-                yield cls._strictly_from_string
+                yield cls._get_or_raise
 
             @staticmethod
             def __modify_schema__(field_schema):
@@ -301,16 +301,21 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
         )
 
     @classmethod
-    def _strictly_from_string(cls, value: str):
+    def _get_or_raise(cls, value):
         """
         Takes a value and returns either an instance of a Token or a value error
         """
-        if not isinstance(value, str):
-            raise TypeError('String required')
-        token = cls.get(value)
-        if token is None:
-            raise ValueError('Not a valid token')
-        return token
+        if isinstance(value, Token):
+            if value not in cls:
+                raise ValueError('Not a valid token')
+            return value
+        elif isinstance(value, str):
+            token = cls.get(value)
+            if token is None:
+                raise ValueError('Not a valid token')
+            return token
+        else:
+            raise TypeError('Either string or instance of the token required')
 
     @classmethod
     def get(cls, key, default=None):
