@@ -1,3 +1,4 @@
+import dataclasses
 from copy import copy, deepcopy
 import pickle
 
@@ -505,3 +506,14 @@ def test_the_containers_token_class_property_raises_a_sensible_error_for_an_empt
     with pytest.raises(Exception) as error:
         assert issubclass(BrokenTokens.__token_class__, MyToken)
     assert str(error.value) == "BrokenTokens has no tokens defined so __token_class__ cannot be used"
+
+
+@dataclasses.dataclass
+class MyDataClass:
+    thing: MyToken
+
+
+def test_a_token_used_in_a_dataclass_can_be_converted_to_a_dic():
+    my_data = MyDataClass(thing=MyTokens.foo)
+    actual = dataclasses.asdict(my_data)
+    assert actual == {'thing': MyTokens.foo}
