@@ -1,5 +1,10 @@
 Changelog
 =========
+3.5.1 (2022-02-02)
+~~~~~~~~~~~~~~~~~~
+
+* Fix bug where token instance was not a valid value for a pydantic dataclass or model (only string type was allowed).
+
 3.5.0 (2022-01-24)
 ~~~~~~~~~~~~~~~~~~
 

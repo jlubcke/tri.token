@@ -41,6 +41,10 @@ def test_strings_are_converted_into_the_appropriate_type():
     assert MyModel(thing="baz").thing == MyTokens.baz
 
 
+def test_tokens_can_also_be_used_as_the_input():
+    assert MyModel(thing=MyTokens.baz).thing == MyTokens.baz
+
+
 def test_invalid_strings_raise_an_error():
     with pytest.raises(ValidationError):
         MyModel(thing="bob")
@@ -49,6 +53,11 @@ def test_invalid_strings_raise_an_error():
 def test_invalid_strings_raise_an_error_even_if_the_string_would_be_a_valid_token_in_another_container():
     with pytest.raises(ValidationError):
         AnotherModel(thing="baz")
+
+
+def test_invalid_tokens_raise_an_error():
+    with pytest.raises(ValidationError):
+        assert AnotherModel(thing=MyTokens.baz)
 
 
 def test_a_useful_schema_is_generated():
