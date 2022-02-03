@@ -5,6 +5,7 @@ from io import (
     BytesIO,
     StringIO,  # pragma: no cover
 )
+from types import GeneratorType
 
 from tri_declarative import (
     declarative,
@@ -16,7 +17,7 @@ from tri_struct import (
     Struct,
 )
 
-__version__ = '3.5.1'
+__version__ = '3.5.2'
 
 
 class PRESENT(object):
@@ -45,7 +46,14 @@ class Token(FrozenStruct):
         return tuple(cls.get_declared().keys())
 
     def __init__(self, *args, **kwargs):
-
+        if len(args) == 1 and isinstance(args[0], GeneratorType) and not kwargs:
+            # dataclass.asdict assumes a copy of a dict extending object can be constructed by passing a generator
+            # of key value pairs to the constructor. This is not the case for tri.tokens so raise a clear exception
+            # message
+            raise TypeError(
+                f"Instance of tri.token {self.__class__.__name__} can not be constructed from a generator."
+                "If you are using dataclass.asdict you will need to implement an alternative that is token aware."
+            )
         for arg in args:
             if isinstance(arg, PRESENT):
                 assert arg.attribute_name not in kwargs, "%s used with PRESENT and kwarg at the same time" % arg.attribute_name
