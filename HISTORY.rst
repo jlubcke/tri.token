@@ -1,5 +1,11 @@
 Changelog
 =========
+
+3.5.2 (2022-02-XX)
+~~~~~~~~~~~~~~~~~~
+
+* Raise clear exception message if a token is used in a dataclass and passed to asdict.
+
 3.5.1 (2022-02-02)
 ~~~~~~~~~~~~~~~~~~
 
