@@ -10,6 +10,7 @@ class MyDataClass:
     thing: MyToken
 
 
+@pytest.mark.skip
 def test_a_token_used_in_a_dataclass_passed_to_asdict_raises_a_clear_exception_message():
     my_data = MyDataClass(thing=MyTokens.bar)
     with pytest.raises(TypeError) as error:
