@@ -141,7 +141,7 @@ class Token:
         except AttributeError:
             _hash = hash(tuple(
                 (k, getattr(self, k))
-                for k in sorted(self.attribute_names())
+                for k in sorted(self._token_attributes)
             ))
             object.__setattr__(self, hash_key, _hash)
         return _hash

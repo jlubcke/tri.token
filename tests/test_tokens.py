@@ -510,3 +510,7 @@ def test_compare_with_other_type():
     with pytest.raises(TypeError):
         # noinspection PyStatementEffect
         MyTokens.bar > 17
+
+
+def test_hash_on_ad_hoc_token():
+    assert hash(Token(foo=1)) != hash(Token(foo=2))
