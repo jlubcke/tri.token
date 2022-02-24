@@ -5,7 +5,6 @@ from io import (
     BytesIO,
     StringIO,  # pragma: no cover
 )
-from types import GeneratorType
 from typing import Any
 
 from tri_declarative import (
@@ -43,14 +42,6 @@ class Token:
         return tuple(cls.get_declared().keys())
 
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], GeneratorType) and not kwargs:
-            # dataclass.asdict assumes a copy of a dict extending object can be constructed by passing a generator
-            # of key value pairs to the constructor. This is not the case for tri.tokens so raise a clear exception
-            # message
-            raise TypeError(
-                f"Instance of tri.token {self.__class__.__name__} can not be constructed from a generator."
-                "If you are using dataclass.asdict you will need to implement an alternative that is token aware."
-            )
         for arg in args:
             if isinstance(arg, PRESENT):
                 assert arg.attribute_name not in kwargs, f"{arg.attribute_name} used with PRESENT and kwarg at the same time"
@@ -192,6 +183,52 @@ class Token:
         if _container is not None:
             object.__setattr__(self, '_container', _container)
 
+    @classmethod
+    def __get_validators__(cls):
+        found_names = set()
+        for container in cls._container_classes:
+            new_names = set(token.name for token in container)
+            overlap = new_names & found_names
+            if bool(overlap):
+                raise TypeError(f'Non-unique names: {", ".join(overlap)}')
+            found_names |= new_names
+
+        yield cls._validate
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """
+        Interface method for using a Token as part of a pydantic model or dataclass
+        """
+        token_names = [token.name for c in cls._container_classes for token in c]
+        field_schema.update(
+            pattern=f"^{'|'.join(token_names)}$",
+            examples=token_names,
+            type="string",
+        )
+
+    @classmethod
+    def _register_container(cls, container):
+        _container_classes = cls.__dict__.get('_container_classes')
+
+        if _container_classes is None:
+            _container_classes = set()
+            cls._container_classes = _container_classes
+
+        _container_classes.add(container)
+
+    @classmethod
+    def _validate(cls, value):
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, str):
+            for container in cls._container_classes:
+                token = container.get(value)
+                if token is not None:
+                    return token
+            raise ValueError(f"{value} is not a valid value for {cls.__name__}")
+        raise ValueError(f"Given '{type(value).__name__}' expected either an instance of '{cls.__name__}' or 'str'")
+
 
 @declarative(Token)
 @with_meta
@@ -247,6 +284,9 @@ class TokenContainerMeta(ContainerBase.__class__):
 
         cls.tokens = all_tokens
 
+        for token in all_tokens.values():
+            token._register_container(cls)
+
         cls.set_declared(cls.tokens)
 
     def __iter__(cls):
@@ -260,46 +300,6 @@ class TokenContainerMeta(ContainerBase.__class__):
 
     def __getitem__(cls, key):
         return cls.tokens[key]
-
-    @property
-    def __token_class__(cls):
-        """
-        Returns the class of the token represented by this container (in a way that is compatible with
-        both type checkers and pydantic)
-        """
-        token_values = list(cls.tokens.values())
-
-        # This is undefined for empty containers as we can't know the token type
-        if len(token_values) == 0:
-            raise Exception(f"{cls.__name__} has no tokens defined so __token_class__ cannot be used")
-
-        # We're making the assumption that the Container is homogenous so the first token is
-        # the same type as all the others.
-        token_type = token_values[0].__class__
-
-        # This class will have the same contract as the actual token type but work with pydantic
-        class _Token(token_type):
-            __container__class__ = cls
-
-            @staticmethod
-            def __get_validators__():
-                """
-                Interface method for using a TokenContainer as part of a pydantic model or dataclass
-                """
-                yield cls._get_or_raise
-
-            @staticmethod
-            def __modify_schema__(field_schema):
-                """
-                Interface method for using a TokenContainer as part of a pydantic model or dataclass
-                """
-                token_names = [token.name for token in cls]
-                field_schema.update(
-                    pattern=f"^{'|'.join(token_names)}$",
-                    examples=token_names,
-                    type="string",
-                )
-        return _Token
 
 
 class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
@@ -324,26 +324,8 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
         Interface method for pydantic
         """
         raise Exception(
-            f"{cls.__name__} cannot be used as a type in pydantic. Use {cls.__name__}.__token_class__ "
-            f"instead if you want to hint an instance of a token in this container."
+            f"{cls.__name__} cannot be used as a type in pydantic. Use the class of the instances instead"
         )
-
-    @classmethod
-    def _get_or_raise(cls, value):
-        """
-        Takes a value and returns either an instance of a Token or a value error
-        """
-        if isinstance(value, Token):
-            if value not in cls:
-                raise ValueError('Not a valid token')
-            return value
-        elif isinstance(value, str):
-            token = cls.get(value)
-            if token is None:
-                raise ValueError('Not a valid token')
-            return token
-        else:
-            raise TypeError('Either string or instance of the token required')
 
     @classmethod
     def get(cls, key, default=None):

@@ -1,9 +1,17 @@
-from copy import copy, deepcopy
 import pickle
+from copy import (
+    copy,
+    deepcopy,
+)
 
 import pytest
 
-from tri_token import TokenContainer, Token, TokenAttribute, PRESENT
+from tri_token import (
+    PRESENT,
+    Token,
+    TokenAttribute,
+    TokenContainer,
+)
 
 
 def memoize_dummy(f):
@@ -17,13 +25,11 @@ except ImportError:
 
 
 class MyToken(Token):
-
     name = TokenAttribute()
     stuff = TokenAttribute()
 
 
 class MyTokens(TokenContainer):
-
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
     baz = MyToken(stuff='')
@@ -504,15 +510,3 @@ def test_compare_with_other_type():
     with pytest.raises(TypeError):
         # noinspection PyStatementEffect
         MyTokens.bar > 17
-
-
-def test_the_containers_token_class_property_is_the_type_of_the_tokens():
-    assert issubclass(MyTokens.__token_class__, MyToken)
-
-
-def test_the_containers_token_class_property_raises_a_sensible_error_for_an_empty_container():
-    class BrokenTokens(TokenContainer):
-        pass
-    with pytest.raises(Exception) as error:
-        assert issubclass(BrokenTokens.__token_class__, MyToken)
-    assert str(error.value) == "BrokenTokens has no tokens defined so __token_class__ cannot be used"

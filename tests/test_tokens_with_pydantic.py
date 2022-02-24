@@ -1,63 +1,68 @@
-from typing import TYPE_CHECKING
-
+import pydantic
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import (
+    BaseModel,
+    ValidationError,
+)
 
-from tri_token import TokenContainer, Token, TokenAttribute
+from tri_token import (
+    Token,
+    TokenAttribute,
+    TokenContainer,
+)
 
 
 class MyToken(Token):
-
-    name = TokenAttribute()
     stuff = TokenAttribute()
 
 
 class MyTokens(TokenContainer):
-    if TYPE_CHECKING:
-        __token_class__ = MyToken
-
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
     baz = MyToken(stuff='')
 
 
-class MyOtherTokens(TokenContainer):
-    if TYPE_CHECKING:
-        __token_class__ = MyToken
-
-    foo = MyToken(stuff='Hello')
-    bar = MyToken(stuff='World')
+@pydantic.dataclasses.dataclass
+class MyModelDirectly:
+    thing: MyToken
 
 
-class MyModel(BaseModel):
-    thing: MyTokens.__token_class__
+def test_token_class_something_something():
+    assert MyModelDirectly(thing=MyTokens.foo).thing == MyTokens.foo
 
 
-class AnotherModel(BaseModel):
-    thing: MyOtherTokens.__token_class__
+def test_token_class_rejects_invalid_values():
+    with pytest.raises(ValidationError) as e:
+        MyModelDirectly(thing=5)
+    assert "Given 'int' expected either an instance of 'MyToken' or 'str'" in str(e.value)
 
 
-def test_strings_are_converted_into_the_appropriate_type():
-    assert MyModel(thing="baz").thing == MyTokens.baz
+def test_token_class_can_coerce_strings():
+    assert MyModelDirectly(thing="foo").thing == MyTokens.foo
 
 
-def test_tokens_can_also_be_used_as_the_input():
-    assert MyModel(thing=MyTokens.baz).thing == MyTokens.baz
+def test_token_class_coersion_conflict():
+    class TheToken(Token):
+        pass
+
+    class OneTokenContainer(TokenContainer):
+        foo = TheToken()
+
+    class AnotherTokenContainer(TokenContainer):
+        foo = TheToken()
+
+    with pytest.raises(TypeError) as e:
+        @pydantic.dataclasses.dataclass
+        class MyModelDirectly:
+            thing: TheToken
+
+    assert str(e.value) == 'Non-unique names: foo'
 
 
-def test_invalid_strings_raise_an_error():
-    with pytest.raises(ValidationError):
-        MyModel(thing="bob")
-
-
-def test_invalid_strings_raise_an_error_even_if_the_string_would_be_a_valid_token_in_another_container():
-    with pytest.raises(ValidationError):
-        AnotherModel(thing="baz")
-
-
-def test_invalid_tokens_raise_an_error():
-    with pytest.raises(ValidationError):
-        assert AnotherModel(thing=MyTokens.baz)
+def test_token_class_cant_coerce_badness():
+    with pytest.raises(ValidationError) as e:
+        MyModelDirectly(thing="badness")
+    assert 'badness is not a valid value for MyToken' in str(e.value)
 
 
 def test_a_useful_schema_is_generated():
@@ -67,7 +72,11 @@ def test_a_useful_schema_is_generated():
         "examples": ["foo", "bar", "baz"],
         "type": "string"
     }
-    assert MyModel.schema()["properties"]["thing"] == expected
+
+    class SomeModel(BaseModel):
+        thing: MyToken
+
+    assert SomeModel.schema()['properties']['thing'] == expected
 
 
 def test_accidentally_using_the_container_type_directly_produces_a_helpful_error():
@@ -75,7 +84,5 @@ def test_accidentally_using_the_container_type_directly_produces_a_helpful_error
         class MyBrokenModel(BaseModel):
             thing: MyTokens
         MyBrokenModel(thing="baz")
-    expected_error = \
-        "MyTokens cannot be used as a type in pydantic. Use MyTokens.__token_class__ " \
-        "instead if you want to hint an instance of a token in this container."
+    expected_error = 'MyTokens cannot be used as a type in pydantic. Use the class of the instances instead'
     assert str(error.value) == expected_error
