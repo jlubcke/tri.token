@@ -11,9 +11,8 @@ from tri_declarative import (
     declarative,
     with_meta,
 )
-from tri_struct import Struct
 
-__version__ = '3.5.2'
+__version__ = '4.0.0'
 
 
 class PRESENT(object):
@@ -22,7 +21,7 @@ class PRESENT(object):
 
 
 MISSING = object()
-hash_key = '_hash'
+HASH_KEY_ATTRIBUTE = '_hash'
 
 
 @dataclass(frozen=True)
@@ -137,13 +136,13 @@ class Token:
 
     def __hash__(self):
         try:
-            _hash = object.__getattribute__(self, hash_key)
+            _hash = object.__getattribute__(self, HASH_KEY_ATTRIBUTE)
         except AttributeError:
             _hash = hash(tuple(
                 (k, getattr(self, k))
                 for k in sorted(self._token_attributes)
             ))
-            object.__setattr__(self, hash_key, _hash)
+            object.__setattr__(self, HASH_KEY_ATTRIBUTE, _hash)
         return _hash
 
     def __repr__(self):
@@ -185,6 +184,9 @@ class Token:
 
     @classmethod
     def __get_validators__(cls):
+        """
+        Interface method for using a Token as part of a pydantic model or dataclass
+        """
         found_names = set()
         for container in cls._container_classes:
             new_names = set(token.name for token in container)
@@ -194,6 +196,18 @@ class Token:
             found_names |= new_names
 
         yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, str):
+            for container in cls._container_classes:
+                token = container.get(value)
+                if token is not None:
+                    return token
+            raise ValueError(f"{value} is not a valid value for {cls.__name__}")
+        raise ValueError(f"Given '{type(value).__name__}' expected either an instance of '{cls.__name__}' or 'str'")
 
     @classmethod
     def __modify_schema__(cls, field_schema):
@@ -216,18 +230,6 @@ class Token:
             cls._container_classes = _container_classes
 
         _container_classes.add(container)
-
-    @classmethod
-    def _validate(cls, value):
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, str):
-            for container in cls._container_classes:
-                token = container.get(value)
-                if token is not None:
-                    return token
-            raise ValueError(f"{value} is not a valid value for {cls.__name__}")
-        raise ValueError(f"Given '{type(value).__name__}' expected either an instance of '{cls.__name__}' or 'str'")
 
 
 @declarative(Token)
@@ -277,8 +279,8 @@ class TokenContainerMeta(ContainerBase.__class__):
 
             token._set_derived_attributes()
 
-            if hasattr(token, hash_key):
-                object.__delattr__(token, hash_key)
+            if hasattr(token, HASH_KEY_ATTRIBUTE):
+                object.__delattr__(token, HASH_KEY_ATTRIBUTE)
 
             all_tokens[token.name] = token
 
