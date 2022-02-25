@@ -1,7 +1,7 @@
 Changelog
 =========
 
-4.0.0 (2022-02-XX)
+4.0.0 (2022-02-25)
 ~~~~~~~~~~~~~~~~~~
 
 * Removed inheritance from FrozenStruct. Token instances are now plain objects.
@@ -16,10 +16,12 @@ Changelog
 
 * Raise clear exception message if a token is used in a dataclass and passed to asdict.
 
+
 3.5.1 (2022-02-02)
 ~~~~~~~~~~~~~~~~~~
 
 * Fix bug where token instance was not a valid value for a pydantic dataclass or model (only string type was allowed).
+
 
 3.5.0 (2022-01-24)
 ~~~~~~~~~~~~~~~~~~
