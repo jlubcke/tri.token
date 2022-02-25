@@ -1,7 +1,17 @@
 Changelog
 =========
 
-3.5.2 (2022-02-XX)
+4.0.0 (2022-02-XX)
+~~~~~~~~~~~~~~~~~~
+
+* Removed inheritance from FrozenStruct. Token instances are now plain objects.
+
+* Fix hash value of ad-hoc created Token instances
+
+* Fix pydantic type checking and string coercion of tokens
+
+
+3.5.2 (2022-02-08)
 ~~~~~~~~~~~~~~~~~~
 
 * Raise clear exception message if a token is used in a dataclass and passed to asdict.

@@ -1,9 +1,17 @@
-from copy import copy, deepcopy
 import pickle
+from copy import (
+    copy,
+    deepcopy,
+)
 
 import pytest
 
-from tri_token import TokenContainer, Token, TokenAttribute, PRESENT
+from tri_token import (
+    PRESENT,
+    Token,
+    TokenAttribute,
+    TokenContainer,
+)
 
 
 def memoize_dummy(f):
@@ -17,13 +25,11 @@ except ImportError:
 
 
 class MyToken(Token):
-
     name = TokenAttribute()
     stuff = TokenAttribute()
 
 
 class MyTokens(TokenContainer):
-
     foo = MyToken(stuff='Hello')
     bar = MyToken(stuff='World')
     baz = MyToken(stuff='')
@@ -76,6 +82,11 @@ def test_pickle():
     # assert result is MyTokens.foo
 
 
+def test_pickle_baseclass_use():
+    pickled = pickle.loads(pickle.dumps(Token(name='foo', bar='baz'), pickle.HIGHEST_PROTOCOL))
+    assert list(pickled._token_attributes.keys()) == ['name', 'bar']
+
+
 def test_equal():
     class A(TokenContainer):
         foo = Token()
@@ -85,15 +96,6 @@ def test_equal():
 
     assert A.foo != B.foo
     assert not A.foo == B.foo
-
-
-def test_modification():
-    existing_token = MyTokens.foo
-    attributes = dict(existing_token)
-    attributes.update(stuff="Other stuff")
-    new_token = type(existing_token)(**attributes)
-    assert new_token.stuff == "Other stuff"
-    assert isinstance(new_token, MyToken)
 
 
 def test_attribute_ordering():
@@ -183,7 +185,9 @@ def test_inheritance():
         fie = TokenAttribute()
 
     t = FieToken(foo=1, bar=2, fie=3)
-    assert dict(t) == dict(name=None, foo=1, bar=2, fie=3)
+    assert t.foo == 1
+    assert t.bar == 2
+    assert t.fie == 3
 
 
 def test_container_inheritance_ordering():
@@ -284,6 +288,19 @@ def test_derived_value():
 
     token = TokenWithDerivedValue(name="not used", another_name="explicit override")
     assert token.another_name == "explicit override"
+
+
+def test_derived_value_in_container():
+    class TokenWithDerivedValue(Token):
+        name = TokenAttribute()
+        another_name = TokenAttribute(value=lambda name, **_: "also " + name)
+
+    class TokenContainerWithDerivedValue(TokenContainer):
+        a_name = TokenWithDerivedValue()
+        not_used = TokenWithDerivedValue(another_name="explicit override")
+
+    assert TokenContainerWithDerivedValue.a_name.another_name == "also a_name"
+    assert TokenContainerWithDerivedValue.not_used.another_name == "explicit override"
 
 
 def test_optional_value():
@@ -495,13 +512,5 @@ def test_compare_with_other_type():
         MyTokens.bar > 17
 
 
-def test_the_containers_token_class_property_is_the_type_of_the_tokens():
-    assert issubclass(MyTokens.__token_class__, MyToken)
-
-
-def test_the_containers_token_class_property_raises_a_sensible_error_for_an_empty_container():
-    class BrokenTokens(TokenContainer):
-        pass
-    with pytest.raises(Exception) as error:
-        assert issubclass(BrokenTokens.__token_class__, MyToken)
-    assert str(error.value) == "BrokenTokens has no tokens defined so __token_class__ cannot be used"
+def test_hash_on_ad_hoc_token():
+    assert hash(Token(foo=1)) != hash(Token(foo=2))

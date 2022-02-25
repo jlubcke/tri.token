@@ -1,23 +1,18 @@
 import csv
-
 from collections.abc import Hashable
+from dataclasses import dataclass
 from io import (
     BytesIO,
     StringIO,  # pragma: no cover
 )
-from types import GeneratorType
+from typing import Any
 
 from tri_declarative import (
     declarative,
     with_meta,
 )
-from tri_struct import (
-    FrozenStruct,
-    merged,
-    Struct,
-)
 
-__version__ = '3.5.2'
+__version__ = '4.0.0'
 
 
 class PRESENT(object):
@@ -26,19 +21,19 @@ class PRESENT(object):
 
 
 MISSING = object()
+HASH_KEY_ATTRIBUTE = '_hash'
 
 
-class TokenAttribute(FrozenStruct):
-    def __init__(self, **kwargs):
-        kwargs.setdefault('description')
-        kwargs.setdefault('default', MISSING)
-        kwargs.setdefault('value')
-        kwargs.setdefault('optional_value')
-        super(TokenAttribute, self).__init__(**kwargs)
+@dataclass(frozen=True)
+class TokenAttribute:
+    description: str = None
+    value: Any = None
+    optional_value: Any = None
+    default: Any = MISSING
 
 
 @declarative(TokenAttribute, add_init_kwargs=False)
-class Token(FrozenStruct):
+class Token:
     name = TokenAttribute()
 
     @classmethod
@@ -46,20 +41,12 @@ class Token(FrozenStruct):
         return tuple(cls.get_declared().keys())
 
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], GeneratorType) and not kwargs:
-            # dataclass.asdict assumes a copy of a dict extending object can be constructed by passing a generator
-            # of key value pairs to the constructor. This is not the case for tri.tokens so raise a clear exception
-            # message
-            raise TypeError(
-                f"Instance of tri.token {self.__class__.__name__} can not be constructed from a generator."
-                "If you are using dataclass.asdict you will need to implement an alternative that is token aware."
-            )
         for arg in args:
             if isinstance(arg, PRESENT):
-                assert arg.attribute_name not in kwargs, "%s used with PRESENT and kwarg at the same time" % arg.attribute_name
+                assert arg.attribute_name not in kwargs, f"{arg.attribute_name} used with PRESENT and kwarg at the same time"
                 kwargs[arg.attribute_name] = PRESENT
             else:  # pragma: no cover
-                assert False, "Unexpected position argument: %s" % (arg,)  # pragma: no mutate
+                assert False, f"Unexpected position argument: {arg}"  # pragma: no mutate
 
         token_attributes = self.get_declared()
 
@@ -68,38 +55,51 @@ class Token(FrozenStruct):
             token_attributes_from_kwargs = [(name, TokenAttribute()) for name in kwargs]
             token_attributes = dict(list(token_attributes.items()) + token_attributes_from_kwargs)
 
-        new_kwargs = Struct()
+        object.__setattr__(self, '_token_attributes', token_attributes)
+
+        attribute_values = dict()
         for name, token_attribute in token_attributes.items():
             default = token_attribute.default
             if token_attribute.default is MISSING:
                 default = None
-            new_kwargs[name] = kwargs.pop(name, default)
+            attribute_values[name] = kwargs.pop(name, default)
 
         object.__setattr__(self, '__override__', kwargs.pop('__override__', False))
 
-        assert len(kwargs) == 0, "Unexpected constructor arguments: %s" % (kwargs, )  # pragma: no mutate
+        assert len(kwargs) == 0, f"Unexpected constructor arguments: {kwargs}"  # pragma: no mutate
 
-        if new_kwargs.name is not None:
-            for name, token_attribute in token_attributes.items():
+        for name, value in attribute_values.items():
+            if not isinstance(value, Hashable):
+                raise ValueError(f"Attribute {name} has unhashable value: {value}")
 
+            object.__setattr__(self, name, value)
+
+        self._set_derived_attributes()
+
+    def _set_derived_attributes(self):
+        if self.name is not None:
+            for name, token_attribute in self._token_attributes.items():
                 if token_attribute.value is not None:
-                    existing_value = new_kwargs[name]
+                    existing_value = getattr(self, name, None)
                     if existing_value is None:
-                        new_kwargs[name] = token_attribute.value(**new_kwargs)
+                        kwargs = {k: getattr(self, k, None) for k in self._token_attributes}
+                        new_value = token_attribute.value(**kwargs)
+                        object.__setattr__(self, name, new_value)
 
                 if token_attribute.optional_value is not None:
-                    existing_value = new_kwargs[name]
+                    existing_value = getattr(self, name, None)
                     if existing_value is PRESENT or isinstance(existing_value, PRESENT):
-                        new_value = token_attribute.optional_value(**new_kwargs)
+                        kwargs = {k: getattr(self, k, None) for k in self._token_attributes}
+                        new_value = token_attribute.optional_value(**kwargs)
                         # Only update if we got a value (otherwise retain the PRESENT marker)
                         if new_value is not None:
-                            new_kwargs[name] = new_value
+                            object.__setattr__(self, name, new_value)
 
-        for name, value in new_kwargs.items():
-            if not isinstance(value, Hashable):
-                raise ValueError("Attribute {} has unhashable value: {}".format(name, value))
+    def __setattr__(self, k, v):
+        raise TypeError(f"'{type(self).__name__}' object attributes are read-only")
 
-        super(Token, self).__init__(**new_kwargs)
+    def __delattr__(self, *_, **__):
+        raise TypeError(f"'{type(self).__name__}' object attributes are read-only")
 
     def __lt__(self, other):
         if not type(self) is type(other):
@@ -135,13 +135,28 @@ class Token(FrozenStruct):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return FrozenStruct.__hash__(self)
+        try:
+            _hash = object.__getattribute__(self, HASH_KEY_ATTRIBUTE)
+        except AttributeError:
+            _hash = hash(tuple(
+                (k, getattr(self, k))
+                for k in sorted(self._token_attributes)
+            ))
+            object.__setattr__(self, HASH_KEY_ATTRIBUTE, _hash)
+        return _hash
 
     def __repr__(self):
-        return "<%s: %s%s>" % (type(self).__name__, (self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
+        return '<{}: {}{}>'.format(
+            type(self).__name__,
+            (self.prefix + '.') if getattr(self, 'prefix', None) else '',
+            self.name if self.name else '(unnamed)',
+        )
 
     def __str__(self):
-        return "%s%s" % ((self.prefix + '.') if getattr(self, 'prefix', None) else '', self.name if self.name else '(unnamed)')
+        return '{}{}'.format(
+            (self.prefix + '.') if getattr(self, 'prefix', None) else '',
+            self.name if self.name else '(unnamed)',
+        )
 
     def __copy__(self):
         return self
@@ -149,29 +164,77 @@ class Token(FrozenStruct):
     def __deepcopy__(self, _):
         return self
 
-    # See https://stackoverflow.com/questions/46526498/pickle-a-dict-subclass-without-reduce-method-does-not-load-member-attributes/46560454
-    def __reduce__(self):
-        return Struct.__reduce__(self)
-
     def __getstate__(self):
         return (
-            dict(self),
+            {k: getattr(self, k) for k in self._token_attributes},
             getattr(self, '_container', None),
             getattr(self, '_index', None),
         )
 
     def __setstate__(self, state):
         d, _container, _index = state
-        dict.update(self, d)
+        for k, v in d.items():
+            object.__setattr__(self, k, v)
+        object.__setattr__(self, '_token_attributes', {k: TokenAttribute() for k in d})
+
         if _index is not None:
             object.__setattr__(self, '_index', _index)
         if _container is not None:
             object.__setattr__(self, '_container', _container)
 
+    @classmethod
+    def __get_validators__(cls):
+        """
+        Interface method for using a Token as part of a pydantic model or dataclass
+        """
+        found_names = set()
+        for container in cls._container_classes:
+            new_names = set(token.name for token in container)
+            overlap = new_names & found_names
+            if bool(overlap):
+                raise TypeError(f'Non-unique names: {", ".join(overlap)}')
+            found_names |= new_names
+
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, str):
+            for container in cls._container_classes:
+                token = container.get(value)
+                if token is not None:
+                    return token
+            raise ValueError(f"{value} is not a valid value for {cls.__name__}")
+        raise ValueError(f"Given '{type(value).__name__}' expected either an instance of '{cls.__name__}' or 'str'")
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """
+        Interface method for using a Token as part of a pydantic model or dataclass
+        """
+        token_names = [token.name for c in cls._container_classes for token in c]
+        field_schema.update(
+            pattern=f"^{'|'.join(token_names)}$",
+            examples=token_names,
+            type="string",
+        )
+
+    @classmethod
+    def _register_container(cls, container):
+        _container_classes = cls.__dict__.get('_container_classes')
+
+        if _container_classes is None:
+            _container_classes = set()
+            cls._container_classes = _container_classes
+
+        _container_classes.add(container)
+
 
 @declarative(Token)
 @with_meta
-class ContainerBase(object):
+class ContainerBase:
     pass
 
 
@@ -196,36 +259,35 @@ class TokenContainerMeta(ContainerBase.__class__):
             ):
                 raise TypeError('Illegal enum value override. Use __override__=True parameter to override.')
 
-            overrides = Struct()
-
             if token.name is None:
-                overrides.name = token_name
+                object.__setattr__(token, 'name', token_name)
             else:
                 assert token.name == token_name
 
             if prefix:
-                assert 'prefix' in token, 'You must define a token attribute called "prefix"'
+                assert 'prefix' in token.attribute_names(), 'You must define a token attribute called "prefix"'
                 if token.prefix is None:
-                    overrides.prefix = prefix
-
-            if overrides:
-                new_token = merged(token, overrides)
-                setattr(cls, token_name, new_token)
-                token = new_token
+                    object.__setattr__(token, 'prefix', prefix)
 
             if not hasattr(token, '_index'):
                 global _next_index
-                # __setattr__ since FrozenStruct is read-only
                 object.__setattr__(token, '_index', _next_index)
                 _next_index += 1
 
             if not hasattr(token, '_container'):
-                # __setattr__ since FrozenStruct is read-only
                 object.__setattr__(token, '_container', f"{cls.__module__}.{cls.__name__}")
+
+            token._set_derived_attributes()
+
+            if hasattr(token, HASH_KEY_ATTRIBUTE):
+                object.__delattr__(token, HASH_KEY_ATTRIBUTE)
 
             all_tokens[token.name] = token
 
         cls.tokens = all_tokens
+
+        for token in all_tokens.values():
+            token._register_container(cls)
 
         cls.set_declared(cls.tokens)
 
@@ -240,46 +302,6 @@ class TokenContainerMeta(ContainerBase.__class__):
 
     def __getitem__(cls, key):
         return cls.tokens[key]
-
-    @property
-    def __token_class__(cls):
-        """
-        Returns the class of the token represented by this container (in a way that is compatible with
-        both type checkers and pydantic)
-        """
-        token_values = list(cls.tokens.values())
-
-        # This is undefined for empty containers as we can't know the token type
-        if len(token_values) == 0:
-            raise Exception(f"{cls.__name__} has no tokens defined so __token_class__ cannot be used")
-
-        # We're making the assumption that the Container is homogenous so the first token is
-        # the same type as all the others.
-        token_type = token_values[0].__class__
-
-        # This class will have the same contract as the actual token type but work with pydantic
-        class _Token(token_type):
-            __container__class__ = cls
-
-            @staticmethod
-            def __get_validators__():
-                """
-                Interface method for using a TokenContainer as part of a pydantic model or dataclass
-                """
-                yield cls._get_or_raise
-
-            @staticmethod
-            def __modify_schema__(field_schema):
-                """
-                Interface method for using a TokenContainer as part of a pydantic model or dataclass
-                """
-                token_names = [token.name for token in cls]
-                field_schema.update(
-                    pattern=f"^{'|'.join(token_names)}$",
-                    examples=token_names,
-                    type="string",
-                )
-        return _Token
 
 
 class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
@@ -304,26 +326,8 @@ class TokenContainer(ContainerBase, metaclass=TokenContainerMeta):
         Interface method for pydantic
         """
         raise Exception(
-            f"{cls.__name__} cannot be used as a type in pydantic. Use {cls.__name__}.__token_class__ "
-            f"instead if you want to hint an instance of a token in this container."
+            f"{cls.__name__} cannot be used as a type in pydantic. Use the class of the instances instead"
         )
-
-    @classmethod
-    def _get_or_raise(cls, value):
-        """
-        Takes a value and returns either an instance of a Token or a value error
-        """
-        if isinstance(value, Token):
-            if value not in cls:
-                raise ValueError('Not a valid token')
-            return value
-        elif isinstance(value, str):
-            token = cls.get(value)
-            if token is None:
-                raise ValueError('Not a valid token')
-            return token
-        else:
-            raise TypeError('Either string or instance of the token required')
 
     @classmethod
     def get(cls, key, default=None):
